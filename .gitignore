@@ -1,0 +1,14 @@
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.env
+.vscode/
+*.sqlite3
+*.sqlite
+.DS_Store
+*firebase-adminsdk*.json
+be2/uploads/
+chicken-poultry/
+yarn.lock
+package-lock.json
