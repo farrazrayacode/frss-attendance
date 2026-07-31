@@ -198,7 +198,6 @@
                             </th>
                         </tr>
                     </thead>
-                    <!-- Table Header -->
                     <!-- Table Body -->
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         {#if dashboardData && dashboardData.recentAlerts.length > 0}
@@ -249,7 +248,6 @@
                             </tr>
                         {/if}
                     </tbody>
-                    <!-- Table Body -->
                 </table>
             </div>
         </div>
@@ -268,13 +266,13 @@
                         {#each dashboardData.systemHealth as health}
                             <div class="flex flex-col gap-y-3">
                                 <div class="flex items-center justify-between">
-                                    <p class="text-theme-md font-medium text-gray-800">{health.label}</p>
-                                    <p class="text-theme-sm text-gray-800">{health.percentage}%</p>
+                                    <p class="text-theme-md font-medium text-gray-800 dark:text-white">{health.label}</p>
+                                    <p class="text-theme-sm text-gray-800 dark:text-white">{health.percentage}%</p>
                                 </div>
                                 <div class="relative h-3 w-full rounded-full bg-gray-200 dark:bg-gray-800">
                                     <div
                                         class={`bg-${health.color}-500 absolute left-0 h-full rounded-full`}
-                                        style="width: {health.percentage}%"
+                                        style={`width: ${health.percentage}%`}
                                     ></div>
                                 </div>
                             </div>

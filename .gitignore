@@ -12,3 +12,7 @@ be2/uploads/
 chicken-poultry/
 yarn.lock
 package-lock.json
+
+# --- Tambahan untuk Service Account Key Firebase ---
+*.json.json
+*serviceAccountKey*.json

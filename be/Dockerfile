@@ -2,8 +2,8 @@ FROM node:lts-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package*.json ./
+RUN npm install --legacy-peer-deps
 
 COPY . .
 RUN npx prisma generate

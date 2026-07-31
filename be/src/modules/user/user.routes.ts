@@ -1,13 +1,15 @@
 import express from 'express';
-import { 
-  getAllUsersController, 
-  getUserProfileController,
-  createUser,
-  updateUser,
-  deleteUser,
-  approveUser,
-  rejectUser,
-  getAttendanceReportController
+import {
+    getAllUsersController,
+    getUserProfileController,
+    createUser,
+    updateUser,
+    deleteUser,
+    approveUser,
+    rejectUser,
+    getAttendanceReportController,
+    getAttendancesTodayController,
+    getBlacklistDetectionController
 } from './user.controller';
 import { authMiddleware } from '@/middlewares/auth.middleware';
 
@@ -21,7 +23,10 @@ userRouter.put('/:id', updateUser);
 userRouter.delete('/:id', deleteUser);
 userRouter.patch('/:id/approve', approveUser);
 userRouter.patch('/:id/reject', rejectUser);
-userRouter.get('/attendance-report', getAttendanceReportController); 
+userRouter.get('/attendance-report', getAttendanceReportController);
 
+// Tambahkan di sini
+userRouter.get('/attendances-today', getAttendancesTodayController);
+userRouter.get('/blacklist-detection', getBlacklistDetectionController);
 
 export default userRouter;

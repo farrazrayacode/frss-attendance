@@ -94,3 +94,7 @@ dist
 venv/
 __pycache__/
 *.pyc
+
+# Firebase Service Account Keys
+serviceAccountKeyFrss.json
+serviceAccountKeyArka.json
