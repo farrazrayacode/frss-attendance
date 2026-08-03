@@ -1,10 +1,12 @@
 import axios from 'axios';
-import { PUBLIC_BE2_URL } from '$env/static/public';
+import { env } from '$env/dynamic/public';
 import type { ChickenSession, ChickenLatest, ChickenDailySummary } from '$lib/interfaces/chicken.interfaces';
 
-const apiAI = axios.create({ baseURL: PUBLIC_BE2_URL || 'http://localhost:8000' });
+const PUBLIC_BE2_URL = env.PUBLIC_BE2_URL || 'http://localhost:5000';
 
-export const BE2_BASE = PUBLIC_BE2_URL || 'http://localhost:8000';
+const apiAI = axios.create({ baseURL: PUBLIC_BE2_URL });
+
+export const BE2_BASE = PUBLIC_BE2_URL;
 
 // URL to play the processed result video (use in <video src={...}>)
 export const PROCESSED_VIDEO_URL = `${BE2_BASE}/api/mobile/v1/chicken/process/video`;

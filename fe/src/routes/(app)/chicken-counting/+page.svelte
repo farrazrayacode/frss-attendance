@@ -76,25 +76,27 @@
     );
 
     // Active count: from processing session or Firebase depending on mode
-    const activeCount = $derived(
-        viewMode === 'processing' && countingStatus
-            ? countingStatus.total_count
-            : (latest?.chicken_total ?? 0)
-    );
+const activeCount = $derived(
+		(viewMode as string) === 'processing' && countingStatus
+			? (countingStatus as any)?.total_count ?? 0
+			: ((latest as any)?.chicken_total ?? 0)
+	);
 
-    const isCountingRunning = $derived(countingStatus?.running === true);
-    const isPaused          = $derived(countingStatus?.status === 'paused');
-    const isTranscoding     = $derived(countingStatus?.status === 'transcoding');
-    const csInfo            = $derived(countingStatusInfo(countingStatus?.status ?? null));
+	const isCountingRunning = $derived((countingStatus as any)?.running === true);
+	const isPaused          = $derived((countingStatus as any)?.status === 'paused');
+	const isTranscoding     = $derived((countingStatus as any)?.status === 'transcoding');
+	const csInfo            = $derived(
+		(countingStatus as any)?.status ? countingStatusInfo((countingStatus as any).status) : null
+	);
 
-    // ── CCTV helpers ──────────────────────────────────────────────────────────
-    function startCountRefresh() {
-        stopCountRefresh();
-        countRefreshInterval = setInterval(async () => {
-            const l = await getLatestCount(selectedDate);
-            if (l) latest = l;
-        }, 10_000);
-    }
+	// ── CCTV helpers ──────────────────────────────────────────────────────────
+	function startCountRefresh() {
+		stopCountRefresh();
+		countRefreshInterval = setInterval(async () => {
+			const l = await getLatestCount(selectedDate);
+			if (l) latest = l;
+		}, 10_000);
+	}
 
     function stopCountRefresh() {
         if (countRefreshInterval) { clearInterval(countRefreshInterval); countRefreshInterval = null; }
@@ -508,8 +510,8 @@
                     <div class="absolute inset-0 flex flex-col items-end justify-end bg-gradient-to-t from-black/90 via-black/40 to-black/20 pt-14 px-5 pb-5">
                         <!-- Top-center: status badge -->
                         <div class="absolute top-16 left-1/2 -translate-x-1/2 flex items-center gap-x-2 rounded-full bg-black/70 px-4 py-1.5">
-                            <span class={`h-2 w-2 rounded-full ${csInfo.dotClass} ${csInfo.pulse ? 'animate-pulse' : ''}`}></span>
-                            <span class="text-xs font-semibold text-white">{csInfo.label}</span>
+                            <span class={`h-2 w-2 rounded-full ${csInfo?.dotClass ?? ''} ${csInfo?.pulse ? 'animate-pulse' : ''}`}></span>
+                            <span class="text-xs font-semibold text-white">{csInfo?.label ?? ''}</span>
                             {#if countingStatus?.device && countingStatus.status === 'running'}
                                 <span class={`text-xs font-medium ${countingStatus.device === 'cuda' ? 'text-success-400' : 'text-gray-400'}`}>
                                     · {countingStatus.device === 'cuda' ? 'GPU' : 'CPU'}
@@ -631,9 +633,9 @@
                             {latest?.status ?? '—'}
                         </span>
                     {:else}
-                        <span class={`inline-flex items-center gap-x-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${csInfo.badgeClass}`}>
-                            <span class={`h-2 w-2 rounded-full ${csInfo.dotClass} ${csInfo.pulse ? 'animate-pulse' : ''}`}></span>
-                            {csInfo.label}
+                        <span class={`inline-flex items-center gap-x-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${csInfo?.badgeClass ?? ''}`}>
+                         <span class={`h-2 w-2 rounded-full ${csInfo?.dotClass ?? ''} ${csInfo?.pulse ? 'animate-pulse' : ''}`}></span>
+                         {csInfo?.label ?? ''}
                         </span>
                     {/if}
                 </div>
@@ -692,10 +694,10 @@
                 <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
                     <div class="flex items-center justify-between mb-3">
                         <p class="text-theme-sm font-medium text-gray-500 dark:text-white/60">Counting Aktif</p>
-                        <span class={`inline-flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium ${csInfo.badgeClass}`}>
-                            <span class={`h-1.5 w-1.5 rounded-full ${csInfo.dotClass} ${csInfo.pulse ? 'animate-pulse' : ''}`}></span>
-                            {csInfo.label}
-                        </span>
+                        <span class={`inline-flex items-center gap-x-1 rounded-full px-2 py-0.5 text-xs font-medium ${csInfo?.badgeClass ?? ''}`}>
+		                <span class={`h-1.5 w-1.5 rounded-full ${csInfo?.dotClass ?? ''} ${csInfo?.pulse ? 'animate-pulse' : ''}`}></span>
+	                	{csInfo?.label ?? ''}
+	                    </span>
                     </div>
                     <p class="text-5xl font-bold text-brand-600 dark:text-brand-400 tabular-nums">
                         {countingStatus?.total_count ?? 0}
