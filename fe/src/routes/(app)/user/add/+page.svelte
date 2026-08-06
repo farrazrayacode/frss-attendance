@@ -7,7 +7,7 @@
 
   async function handleSubmit() {
     try {
-      const response = await fetch('http://localhost:3000/api/users', {
+      const response = await fetch('http://3.15.176.54:3000/api/users', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
