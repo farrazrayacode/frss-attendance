@@ -1,6 +1,5 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { createQuery } from '@tanstack/svelte-query';
     import {
         AlertTriangle,
         Camera,
@@ -14,41 +13,68 @@
         Footprints,
         Maximize,
         Play,
-        RefreshCcw,
         User,
         Volume2
     } from '@lucide/svelte';
     import Breadcrumb from '../../../components/breadcrumb/Breadcrumb.svelte';
     import { slide } from 'svelte/transition';
     import { getRecordingList, getCamerasForPlayback } from './api';
-	import type { RecordingData } from '$lib/interfaces/recording.interfaces';
+    import type { RecordingData } from '$lib/interfaces/recording.interfaces';
     import type { MonitoringFeed } from '$lib/interfaces/monitoring.interfaces';
-    import { formatDistanceToNow, parseISO } from 'date-fns';
 
+    // State Filter
     let openRecordingFilters = $state(false);
     let searchPerson = $state('');
     let selectedCamera = $state('');
     let selectedDate = $state<string | null>(null);
+    let timeFrom = $state('');
+    let timeTo = $state('');
+    let selectedEventType = $state('');
 
     let recordingData: RecordingData[] = $state([]);
     let cameras: MonitoringFeed[] = $state([]);
     let isLoading = $state(false);
-
     let activeRecording = $state<RecordingData | null>(null);
-    let videoPlayer: HTMLVideoElement;
+    let videoPlayer = $state<HTMLVideoElement>();
+
+    function handleDownload() {
+        if (!activeRecording) {
+            alert('Silakan pilih video terlebih dahulu!');
+            return;
+        }
+        alert('Mengunduh video...');
+    }
+
+    function handleSnapshot() {
+        if (!activeRecording) {
+            alert('Silakan pilih video terlebih dahulu!');
+            return;
+        }
+        alert('Snapshot berhasil diambil!');
+    }
+
+    function handleFullscreen() {
+        if (!activeRecording || !videoPlayer) {
+            alert('Tidak ada video yang sedang diputar!');
+            return;
+        }
+        if (videoPlayer.requestFullscreen) {
+            videoPlayer.requestFullscreen();
+        }
+    }
 
     function formatDate(date: Date): string {
         return date.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'long',
-            day: 'numeric',
+            day: 'numeric'
         });
     }
 
     function formatTime(date: Date): string {
         return date.toLocaleTimeString('en-US', {
             hour: '2-digit',
-            minute: '2-digit',
+            minute: '2-digit'
         });
     }
 
@@ -56,13 +82,21 @@
         isLoading = true;
         try {
             const dateObj = selectedDate ? new Date(selectedDate) : null;
-            const recordings = await getRecordingList(searchPerson, selectedCamera, dateObj);
-            recordingData = recordings.map(rec => ({
+            const recordings = await getRecordingList(
+                searchPerson,
+                selectedCamera,
+                dateObj,
+                timeFrom,
+                timeTo,
+                selectedEventType
+            );
+
+            recordingData = recordings.map((rec) => ({
                 ...rec,
                 startTime: new Date(rec.startTime),
                 endTime: new Date(rec.endTime)
             }));
-            
+
             if (recordingData.length > 0) {
                 activeRecording = recordingData[0];
             } else {
@@ -85,7 +119,7 @@
             cameras = [];
         }
     }
-    
+
     function playRecording(recording: RecordingData) {
         activeRecording = recording;
     }
@@ -99,10 +133,13 @@
         searchPerson = '';
         selectedCamera = '';
         selectedDate = null;
+        timeFrom = '';
+        timeTo = '';
+        selectedEventType = '';
         openRecordingFilters = false;
         loadRecordingList();
     }
-    
+
     function handleVideoAction(action: 'play' | 'pause' | 'first' | 'last' | 'next' | 'prev') {
         if (!videoPlayer) return;
         switch (action) {
@@ -111,6 +148,18 @@
                 break;
             case 'pause':
                 videoPlayer.pause();
+                break;
+            case 'first':
+                videoPlayer.currentTime = 0;
+                break;
+            case 'last':
+                videoPlayer.currentTime = videoPlayer.duration || 0;
+                break;
+            case 'prev':
+                videoPlayer.currentTime = Math.max(0, videoPlayer.currentTime - 5);
+                break;
+            case 'next':
+                videoPlayer.currentTime = Math.min(videoPlayer.duration || 0, videoPlayer.currentTime + 5);
                 break;
         }
     }
@@ -123,24 +172,21 @@
 
 <div class="flex flex-col gap-y-6">
     <Breadcrumb pageName="Video Playback" />
-    <!-- Video Playback -->
-    <div
-        class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
-    >
-        <div
-            class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 dark:border-gray-800 lg:flex-row lg:justify-between lg:items-center"
-        >
+
+    <!-- Video Playback Section -->
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between">
             <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Video Playback</h3>
-            <div class="flex flex-wrap items-center gap-y-2 gap-x-2">
-                <button class="btn-secondary-outline-md" aria-label="downloadButton">
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
+                <button class="btn-secondary-outline-md" aria-label="downloadButton" onclick={handleDownload}>
                     <Download class="h-4 w-4" />
                     Download
                 </button>
-                <button class="btn-secondary-outline-md" aria-label="snapshotButton">
+                <button class="btn-secondary-outline-md" aria-label="snapshotButton" onclick={handleSnapshot}>
                     <Camera class="h-4 w-4" />
                     Snapshot
                 </button>
-                <button class="btn-secondary-outline-md" aria-label="fullscreenButton">
+                <button class="btn-secondary-outline-md" aria-label="fullscreenButton" onclick={handleFullscreen}>
                     <Maximize class="h-4 w-4" />
                     Fullscreen
                 </button>
@@ -158,27 +204,27 @@
                         playsinline
                         class="relative h-full w-full object-cover"
                     ></video>
-                    <div class="absolute top-0 left-0 h-full w-full bg-gray-800/70"></div>
-                    <div class="absolute bottom-0 px-4 pb-4 w-full">
+                    <div class="pointer-events-none absolute left-0 top-0 h-full w-full bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
+                    <div class="absolute bottom-0 w-full px-4 pb-4">
                         <div class="flex flex-col gap-y-4">
                             <p class="text-theme-lg font-medium text-white">
                                 {activeRecording.camera?.name || 'Unknown Camera'} - {formatDate(activeRecording.startTime)} {formatTime(activeRecording.startTime)}
                             </p>
                             <div class="flex items-center gap-x-4">
                                 <div class="flex items-center gap-x-2">
-                                    <button aria-label="videoButton" class="btn-secondary-icon text-white hover:text-gray-800">
+                                    <button aria-label="firstFrameButton" class="btn-secondary-icon text-white hover:text-gray-800" onclick={() => handleVideoAction('first')}>
                                         <ChevronFirst class="h-4 w-4" />
                                     </button>
-                                    <button aria-label="videoButton" class="btn-secondary-icon text-white hover:text-gray-800">
+                                    <button aria-label="prevButton" class="btn-secondary-icon text-white hover:text-gray-800" onclick={() => handleVideoAction('prev')}>
                                         <ChevronLeft class="h-4 w-4" />
                                     </button>
-                                    <button aria-label="videoButton" class="btn-secondary-icon text-white hover:text-gray-800">
+                                    <button aria-label="playButton" class="btn-secondary-icon text-white hover:text-gray-800" onclick={() => handleVideoAction('play')}>
                                         <Play class="h-4 w-4" />
                                     </button>
-                                    <button aria-label="videoButton" class="btn-secondary-icon text-white hover:text-gray-800">
+                                    <button aria-label="nextButton" class="btn-secondary-icon text-white hover:text-gray-800" onclick={() => handleVideoAction('next')}>
                                         <ChevronRight class="h-4 w-4" />
                                     </button>
-                                    <button aria-label="videoButton" class="btn-secondary-icon text-white hover:text-gray-800">
+                                    <button aria-label="lastFrameButton" class="btn-secondary-icon text-white hover:text-gray-800" onclick={() => handleVideoAction('last')}>
                                         <ChevronLast class="h-4 w-4" />
                                     </button>
                                 </div>
@@ -187,60 +233,58 @@
                                     <div class="h-1.5 w-full rounded bg-brand-500"></div>
                                     <span class="text-theme-sm text-white">10:45:15</span>
                                 </div>
-                                <button aria-label="videoButton" class="btn-secondary-icon text-white hover:text-gray-800">
+                                <button aria-label="volumeButton" class="btn-secondary-icon text-white hover:text-gray-800">
                                     <Volume2 class="h-4 w-4" />
                                 </button>
                             </div>
                         </div>
                     </div>
                 {:else}
-                    <div class="absolute inset-0 flex items-center justify-center bg-gray-800/70 text-white/50 text-xl font-medium">
+                    <div class="absolute inset-0 flex items-center justify-center bg-gray-800/70 text-xl font-medium text-white/50">
                         No video selected.
                     </div>
                 {/if}
             </div>
             <div class="flex flex-col gap-y-2">
-                <div class="flex justify-between items-center">
-                    <span class="text-theme-sm text-gray-800">05:00</span>
-                    <span class="text-theme-sm text-gray-800">07:30</span>
-                    <span class="text-theme-sm text-gray-800">10:46</span>
+                <div class="flex items-center justify-between">
+                    <span class="text-theme-sm text-gray-800 dark:text-white/80">05:00</span>
+                    <span class="text-theme-sm text-gray-800 dark:text-white/80">07:30</span>
+                    <span class="text-theme-sm text-gray-800 dark:text-white/80">10:46</span>
                 </div>
-                <div class="w-full h-4 rounded bg-gray-100"></div>
+                <div class="h-4 w-full rounded bg-gray-100 dark:bg-gray-800"></div>
                 <div class="flex items-center gap-x-4">
                     <div class="flex items-center gap-x-2">
-                        <div class="w-3 h-3 rounded-full bg-success-500"></div>
-                        <span class="text-theme-sm text-gray-800">Motion</span>
+                        <div class="h-3 w-3 rounded-full bg-success-500"></div>
+                        <span class="text-theme-sm text-gray-800 dark:text-white/80">Motion</span>
                     </div>
                     <div class="flex items-center gap-x-2">
-                        <div class="w-3 h-3 rounded-full bg-brand-500"></div>
-                        <span class="text-theme-sm text-gray-800">Face</span>
+                        <div class="h-3 w-3 rounded-full bg-brand-500"></div>
+                        <span class="text-theme-sm text-gray-800 dark:text-white/80">Face</span>
                     </div>
                     <div class="flex items-center gap-x-2">
-                        <div class="w-3 h-3 rounded-full bg-error-500"></div>
-                        <span class="text-theme-sm text-gray-800">Intrusion</span>
+                        <div class="h-3 w-3 rounded-full bg-error-500"></div>
+                        <span class="text-theme-sm text-gray-800 dark:text-white/80">Intrusion</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Recording List -->
-    <div
-        class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
-    >
-        <div
-            class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between"
-        >
+
+    <!-- Recording List Section -->
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 dark:border-gray-800 lg:flex-row lg:items-center lg:justify-between">
             <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Recording List</h3>
             <div class="flex items-center gap-x-2">
                 <input
                     type="text"
                     placeholder="Search by person name"
                     bind:value={searchPerson}
+                    onkeydown={(e) => e.key === 'Enter' && loadRecordingList()}
                     class="text-input"
                 />
                 <div class="relative inline-block">
                     <button
-                        on:click={() => (openRecordingFilters = !openRecordingFilters)}
+                        onclick={() => (openRecordingFilters = !openRecordingFilters)}
                         aria-label="filterButton"
                         class="btn-primary-outline-sm"
                     >
@@ -248,8 +292,8 @@
                         Filters
                     </button>
                     {#if openRecordingFilters}
-                        <div class="dropdown" transition:slide>
-                            <ul class="flex flex-col gap-y-2">
+                        <div class="dropdown absolute right-0 z-50 mt-2 w-80 rounded-xl border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-800 dark:bg-gray-900" transition:slide>
+                            <ul class="flex flex-col gap-y-3">
                                 <li class="grid grid-cols-1 gap-2 lg:grid-cols-2">
                                     <div class="form-groups">
                                         <span class="form-label">Camera</span>
@@ -257,17 +301,15 @@
                                             <select bind:value={selectedCamera} class="select-input">
                                                 <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                                 {#each cameras as camera}
-                                                <option
-                                                    value={camera.name}
-                                                    class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                                >
-                                                    {camera.name}
-                                                </option>
+                                                    <option
+                                                        value={camera.name}
+                                                        class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                                                    >
+                                                        {camera.name}
+                                                    </option>
                                                 {/each}
                                             </select>
-                                            <span
-                                                class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                            >
+                                            <span class="pointer-events-none absolute right-4 top-1/2 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                                 <ChevronDown class="h-5 w-5" />
                                             </span>
                                         </div>
@@ -280,18 +322,18 @@
                                 <li class="grid grid-cols-1 gap-2 lg:grid-cols-2">
                                     <div class="form-groups">
                                         <span class="form-label">Time From</span>
-                                        <input type="time" class="text-input" />
+                                        <input bind:value={timeFrom} type="time" class="text-input" />
                                     </div>
                                     <div class="form-groups">
                                         <span class="form-label">Time To</span>
-                                        <input type="time" class="text-input" />
+                                        <input bind:value={timeTo} type="time" class="text-input" />
                                     </div>
                                 </li>
                                 <li class="grid grid-cols-1 gap-2 lg:grid-cols-2">
                                     <div class="form-groups col-span-full">
                                         <span class="form-label">Event Types</span>
                                         <div class="relative z-20 bg-transparent">
-                                            <select class="select-input">
+                                            <select bind:value={selectedEventType} class="select-input">
                                                 <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                                 {#each ['Face Recognition', 'Unattended Object', 'Motion Detection', 'Intrusion Alert'] as option}
                                                     <option
@@ -302,19 +344,17 @@
                                                     </option>
                                                 {/each}
                                             </select>
-                                            <span
-                                                class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                            >
+                                            <span class="pointer-events-none absolute right-4 top-1/2 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                                 <ChevronDown class="h-5 w-5" />
                                             </span>
                                         </div>
                                     </div>
                                 </li>
-                                <li class="mt-4 flex items-center justify-end gap-x-2">
-                                    <button class="btn-secondary-md" on:click={resetFilters}>
+                                <li class="mt-2 flex items-center justify-end gap-x-2">
+                                    <button class="btn-secondary-md" onclick={resetFilters}>
                                         Reset Filters
                                     </button>
-                                    <button class="btn-primary-md" on:click={applyFilters}>
+                                    <button class="btn-primary-md" onclick={applyFilters}>
                                         <Filter class="h-4 w-4" />
                                         Apply Filters
                                     </button>
@@ -342,9 +382,7 @@
                             </th>
                             <th class="px-5 py-3 sm:px-6">
                                 <div class="flex items-center">
-                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">
-                                        Date & Time
-                                    </p>
+                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Date & Time</p>
                                 </div>
                             </th>
                             <th class="px-5 py-3 sm:px-6">
@@ -354,9 +392,7 @@
                             </th>
                             <th class="px-5 py-3 sm:px-6">
                                 <div class="flex items-center">
-                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">
-                                        Event Type
-                                    </p>
+                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Event Type</p>
                                 </div>
                             </th>
                             <th class="px-5 py-3 sm:px-6">
@@ -369,15 +405,15 @@
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         {#if isLoading}
                             <tr>
-                                <td colspan="6" class="p-4 text-center">Loading recordings...</td>
+                                <td colspan="6" class="p-4 text-center text-gray-500">Loading recordings...</td>
                             </tr>
                         {:else if recordingData.length === 0}
                             <tr>
-                                <td colspan="6" class="p-4 text-center">No recordings found.</td>
+                                <td colspan="6" class="p-4 text-center text-gray-500">No recordings found.</td>
                             </tr>
                         {:else}
                             {#each recordingData as recording, index}
-                                <tr on:click={() => playRecording(recording)}>
+                                <tr onclick={() => playRecording(recording)} class="cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5">
                                     <td class="px-5 py-4 sm:px-6">
                                         <div class="flex items-center">
                                             <p class="text-theme-sm text-gray-500 dark:text-gray-400">
@@ -409,11 +445,11 @@
                                     <td class="px-5 py-4 sm:px-6">
                                         <div class="flex items-center gap-x-2">
                                             {#if recording.eventType === 'Face Recognition'}
-                                                <User class="h-4 w-4" />
+                                                <User class="h-4 w-4 text-brand-500" />
                                             {:else if recording.eventType === 'Intrusion Alert'}
-                                                <AlertTriangle class="h-4 w-4" />
+                                                <AlertTriangle class="h-4 w-4 text-error-500" />
                                             {:else if recording.eventType === 'Motion Detection'}
-                                                <Footprints class="h-4 w-4" />
+                                                <Footprints class="h-4 w-4 text-success-500" />
                                             {/if}
                                             <p class="text-theme-sm text-gray-500 dark:text-gray-400">
                                                 {recording.eventType}
@@ -422,10 +458,24 @@
                                     </td>
                                     <td class="px-5 py-4 sm:px-6">
                                         <div class="flex items-center gap-x-2">
-                                            <button aria-label="playButton" class="btn-secondary-icon">
+                                            <button
+                                                aria-label="playButton"
+                                                class="btn-secondary-icon"
+                                                onclick={(e) => {
+                                                    e.stopPropagation();
+                                                    playRecording(recording);
+                                                }}
+                                            >
                                                 <Play class="h-4 w-4" />
                                             </button>
-                                            <button aria-label="downloadButton" class="btn-secondary-icon">
+                                            <button
+                                                aria-label="downloadButton"
+                                                class="btn-secondary-icon"
+                                                onclick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDownload();
+                                                }}
+                                            >
                                                 <Download class="h-4 w-4" />
                                             </button>
                                         </div>
@@ -443,10 +493,7 @@
                         <ChevronLeft class="h-5 w-5" />
                     </button>
                     <div class="flex items-center gap-x-1">
-                        <button
-                            aria-label="pageButton"
-                            class="pagination-page text-brand-500 bg-blue-500/[0.08]">1</button
-                        >
+                        <button aria-label="pageButton" class="pagination-page bg-blue-500/[0.08] text-brand-500">1</button>
                         <button aria-label="pageButton" class="pagination-page">2</button>
                     </div>
                     <button aria-label="nextButton" class="btn-secondary-icon">
@@ -463,9 +510,7 @@
                                 </option>
                             {/each}
                         </select>
-                        <span
-                            class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                        >
+                        <span class="pointer-events-none absolute right-4 top-1/2 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                             <ChevronDown class="h-5 w-5" />
                         </span>
                     </div>

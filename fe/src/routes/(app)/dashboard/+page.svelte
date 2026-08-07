@@ -7,8 +7,16 @@
     import { fetchDashboardData } from './api';
     import type { DashboardResponse, SystemHealthData } from '$lib/interfaces/dashboard.interfaces';
     import { formatDistanceToNow } from 'date-fns';
+    import { dbMain, dbSecondary } from '$lib/firebase';
+    import { collection, getDocs } from 'firebase/firestore';
 
     let dashboardData = $state<DashboardResponse | null>(null);
+        let activeTimeframe = $state('Today');
+
+    function handleTimeframeChange(timeframe: string) {
+        activeTimeframe = timeframe;
+        console.log('Selected timeframe:', timeframe);
+    }
 
     const dashboardQuery = createQuery({
         queryKey: ['dashboardData'],
@@ -117,38 +125,56 @@
     </div>
     <!-- Chart -->
     <div class="grid grid-cols-12 gap-4">
-        <!-- Chart Security Incidents -->
+    <!-- Chart Security Incidents -->
+    <div
+        class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-7 dark:border-gray-800 dark:bg-white/[0.03]"
+    >
         <div
-            class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-7 dark:border-gray-800 dark:bg-white/[0.03]"
+            class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
         >
-            <div
-                class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
-            >
-                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">
-                    Activity Timeline
-                </h3>
-                <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
-                    <button class="btn-secondary-outline-md" aria-label="tabButton"> Today </button>
-                    <button class="btn-secondary-outline-md" aria-label="tabButton"> Weekly </button>
-                    <button class="btn-secondary-outline-md" aria-label="tabButton"> Monthly </button>
-                </div>
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">
+                Activity Timeline
+            </h3>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
+                <button
+                    onclick={() => handleTimeframeChange('Today')}
+                    class="btn-secondary-outline-md {activeTimeframe === 'Today' ? '!bg-blue-600 !text-white !border-blue-600' : ''}"
+                    aria-label="tabButton"
+                >
+                    Today
+                </button>
+                <button
+                    onclick={() => handleTimeframeChange('Weekly')}
+                    class="btn-secondary-outline-md {activeTimeframe === 'Weekly' ? '!bg-blue-600 !text-white !border-blue-600' : ''}"
+                    aria-label="tabButton"
+                >
+                    Weekly
+                </button>
+                <button
+                    onclick={() => handleTimeframeChange('Monthly')}
+                    class="btn-secondary-outline-md {activeTimeframe === 'Monthly' ? '!bg-blue-600 !text-white !border-blue-600' : ''}"
+                    aria-label="tabButton"
+                >
+                    Monthly
+                </button>
             </div>
-            <div use:renderChart={activityTimelineChartData}></div>
         </div>
-        <!-- Chart Incidents -->
-        <div
-            class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-5 dark:border-gray-800 dark:bg-white/[0.03]"
-        >
-            <div
-                class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-5 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
-            >
-                <h3 class="text-base font-medium text-gray-800 dark:text-white/90">
-                    Camera Status
-                </h3>
-            </div>
-            <div use:renderChart={cameraStatusChartData}></div>
-        </div>
+        <div use:renderChart={activityTimelineChartData}></div>
     </div>
+    <!-- Chart Incidents -->
+    <div
+        class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-5 dark:border-gray-800 dark:bg-white/[0.03]"
+    >
+        <div
+            class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-5 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
+        >
+            <h3 class="text-base font-medium text-gray-800 dark:text-white/90">
+                Camera Status
+            </h3>
+        </div>
+        <div use:renderChart={cameraStatusChartData}></div>
+    </div>
+</div>
     <!-- Event & System -->
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <!-- Event -->

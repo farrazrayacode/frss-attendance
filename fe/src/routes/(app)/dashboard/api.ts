@@ -1,16 +1,23 @@
 import { api } from "$lib/axios";
-import type { DashboardResponse, DashboardStats, SystemHealthData  } from '$lib/interfaces/dashboard.interfaces';
+import { dbMain, dbSecondary } from '$lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import type { DashboardResponse, DashboardStats, SystemHealthData } from '$lib/interfaces/dashboard.interfaces';
 import type { MonitoringFeed } from '$lib/interfaces/monitoring.interfaces';
 import type { LiveAlert } from '$lib/interfaces/alert.interfaces';
 
 export const fetchDashboardData = async (): Promise<DashboardResponse> => {
     try {
+        // Fetch paralel ke REST API & Firebase Firestore
         const [
             monitoringFeedsRes,
-            recentAlertsRes
+            recentAlertsRes,
+            attendanceSnap,
+            blacklistSnap
         ] = await Promise.all([
             api.get('/monitoring/feeds'), 
-            api.get('/alerts/live')
+            api.get('/alerts/live'),
+            getDocs(collection(dbMain, 'attendance')), // Ambil data attendance dari Firebase Utama
+            getDocs(collection(dbSecondary, 'blacklist')) // Ambil data blacklist dari Firebase Kedua (atau ubah ke dbMain)
         ]);
 
         const allCameras: MonitoringFeed[] = monitoringFeedsRes.data.data;
@@ -20,10 +27,10 @@ export const fetchDashboardData = async (): Promise<DashboardResponse> => {
         const onlineCameras = allCameras.filter(cam => cam.isOnline).length;
         const offlineCameras = totalCameras - onlineCameras;
 
-        // masih data dummy untuk Attendance dan Blacklist 
-        const attendancesToday = 30; 
+        // Menggunakan data riil dari Firebase Firestore
+        const attendancesToday = attendanceSnap.size; 
         const alertsToday = recentAlerts.length; 
-        const blacklistDetections = 0; 
+        const blacklistDetections = blacklistSnap.size; 
 
         const cameraStatusChartData = {
             options: {

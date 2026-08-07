@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { auth1 } from '../../../firebase';
+    import { auth1 } from '$lib/firebase';
     import { signInWithEmailAndPassword } from 'firebase/auth';
 
     let email = $state('');
@@ -16,13 +16,9 @@
             const userCredential = await signInWithEmailAndPassword(auth1, email, password);
             console.log('Login berhasil:', userCredential.user);
 
-            // 1. Ambil Firebase ID Token
             const token = await userCredential.user.getIdToken();
-
-            // 2. Simpan token ke localStorage sebagai 'accessToken'
             localStorage.setItem('accessToken', token);
 
-            // 3. Pindah ke dashboard setelah token tersimpan
             window.location.href = '/dashboard';
         } catch (err: any) {
             console.error('Error login:', err);

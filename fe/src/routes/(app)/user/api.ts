@@ -19,7 +19,7 @@ export const getAllUsers = async (
         const url = `/users${queryString ? `?${queryString}` : ''}`;
 
         const response = await api.get(url);
-        return response.data.data;
+        return response.data.data || response.data;
     } catch (error) {
         console.error('Failed to fetch users:', error);
         throw error;
@@ -29,9 +29,25 @@ export const getAllUsers = async (
 export const getAllRoles = async (): Promise<Role[]> => {
     try {
         const response = await api.get(`/roles`);
-        return response.data.data;
+        // Fallback jika backend mengembalikan response.data.data atau response.data langsung
+        return response.data.data || response.data;
     } catch (error) {
         console.error('Failed to fetch roles:', error);
+        throw error;
+    }
+};
+
+export const createUser = async (payload: {
+    name: string;
+    email: string;
+    role: string;
+    department?: string;
+}): Promise<User> => {
+    try {
+        const response = await api.post('/users', payload);
+        return response.data.data || response.data;
+    } catch (error) {
+        console.error('Failed to create user:', error);
         throw error;
     }
 };
@@ -66,7 +82,7 @@ export const deleteUser = async (userId: string): Promise<void> => {
 export const updateUser = async (userId: string, payload: object): Promise<User> => {
     try {
         const response = await api.put(`/users/${userId}`, payload);
-        return response.data.data; 
+        return response.data.data || response.data; 
     } catch (error) {
         console.error(`Failed to update user ${userId}:`, error);
         throw error;

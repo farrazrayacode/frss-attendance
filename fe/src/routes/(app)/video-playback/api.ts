@@ -5,13 +5,19 @@ import type { MonitoringFeed } from '$lib/interfaces/monitoring.interfaces';
 export const getRecordingList = async (
     personName: string = '',
     cameraName: string = '',
-    date: Date | null = null
+    date: Date | null = null,
+    timeFrom: string = '',
+    timeTo: string = '',
+    eventType: string = ''
 ): Promise<RecordingData[]> => {
     try {
         const params = new URLSearchParams();
         if (personName) params.append('personName', personName);
         if (cameraName) params.append('cameraName', cameraName);
         if (date) params.append('date', date.toISOString());
+        if (timeFrom) params.append('timeFrom', timeFrom);
+        if (timeTo) params.append('timeTo', timeTo);
+        if (eventType) params.append('eventType', eventType);
 
         const queryString = params.toString();
         const url = `/monitoring/recordings${queryString ? `?${queryString}` : ''}`;

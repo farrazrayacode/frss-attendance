@@ -9,7 +9,6 @@
     import { AlertCircle } from 'lucide-svelte';
     import { slide } from 'svelte/transition'; 
 
-
     let openAlertFilters = $state(false);
     let selectedAlertType: string = $state('');
     let selectedLocationFilter: string = $state('');
@@ -29,11 +28,15 @@
     let checkboxSMS = $state(false);
     let checkboxSound = $state(false);
 
+function handleExport() {
+    console.log('Exporting alert history...');
+    alert('Exporting data...');
+}
 
-    function formatAlertTime(date: Date): string {
-        const d = new Date(date);
-        return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
-    }
+function formatAlertTime(date: Date): string {
+    const d = new Date(date);
+    return `${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+}
 
     async function loadAlertHistory() {
         isLoadingHistory = true;
@@ -84,6 +87,22 @@
         await loadAlertHistory();
     }
 
+    function saveNotificationSettings() {
+    const settings = {
+        motion: checkboxMotion,
+        face: checkboxFace,
+        intrusion: checkboxIntrusion,
+        unattended: checkboxUnattended,
+        inApp: checkboxInApp,
+        email: checkboxEmail,
+        sms: checkboxSMS,
+        sound: checkboxSound
+    };
+
+    console.log('Saving notification settings:', settings);
+    alert('Pengaturan berhasil disimpan!');
+}
+
     onMount(async () => {
         await loadMonitoringLocations(); 
         await loadAlertHistory(); 
@@ -92,6 +111,7 @@
 
 <div class="flex flex-col gap-y-6">
     <Breadcrumb pageName="Alert & Notification" />
+
     <!-- Alert History -->
     <div
         class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
@@ -101,7 +121,7 @@
         >
             <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Alert History</h3>
             <div class="flex items-center gap-x-2">
-                <button aria-label="exportButton" class="btn-primary-sm">
+                <button aria-label="exportButton" class="btn-primary-sm" onclick={handleExport}>
                     <Download class="h-4 w-4" />
                     Export
                 </button>
@@ -218,11 +238,10 @@
                             <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div class="flex items-center gap-x-3">
                                     <div class="bg-brand-500 flex h-11 w-11 items-center justify-center rounded-full">
-                                        <!-- Pastikan liveAlert.icon sudah ada dan merupakan komponen Svelte -->
                                         {#if liveAlert.icon}
                                             <svelte:component this={liveAlert.icon} class="h-6 w-6 text-white" />
                                         {:else}
-                                            <AlertCircle class="h-6 w-6 text-white" /> <!-- Fallback icon -->
+                                            <AlertCircle class="h-6 w-6 text-white" />
                                         {/if}
                                     </div>
                                     <div class="flex flex-col gap-y-1">
@@ -296,6 +315,7 @@
             </div>
         </div>
     </div>
+
     <!-- Notification Settings -->
     <div
         class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
@@ -576,9 +596,10 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end">
-                <button class="btn-primary-md">
-                    <Save class="h-5 w-5" />
+            <!-- Action Save Button -->
+            <div class="mt-4 flex justify-end border-t border-gray-100 pt-4 dark:border-gray-800">
+                <button type="button" class="btn-primary-md flex items-center gap-x-2" onclick={saveNotificationSettings}>
+                    <Save class="h-4 w-4" />
                     Save Settings
                 </button>
             </div>
