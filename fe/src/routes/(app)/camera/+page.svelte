@@ -45,6 +45,39 @@ async function submitAddCamera() {
     }
 }
 
+function exportCamerasToCSV() {
+    const cameras = $camerasQuery.data || [];
+    if (cameras.length === 0) {
+        alert('Tidak ada data kamera untuk diekspor.');
+        return;
+    }
+
+    const headers = ['ID', 'Nama', 'Lokasi', 'IP Address', 'Status', 'Stream URL', 'Terakhir Update'];
+    const rows = cameras.map((cam) => [
+        cam.id,
+        cam.name,
+        cam.location || '',
+        cam.ipAddress || '',
+        cam.isOnline ? 'Online' : 'Offline',
+        cam.streamUrl || '',
+        cam.lastUpdated ? new Date(cam.lastUpdated).toLocaleString() : ''
+    ]);
+
+    const csvContent = [headers, ...rows]
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cameras-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
     let checkboxMotion = $state(false);
     let checkboxFace = $state(false);
     let checkboxIntrusion = $state(false);
@@ -169,7 +202,7 @@ async function submitAddCamera() {
                     <Plus class="h-4 w-4" />
                     Add Camera
                 </button>
-                <button class="btn-secondary-outline-md" aria-label="downloadButton">
+                <button class="btn-secondary-outline-md" aria-label="downloadButton" onclick={exportCamerasToCSV}>
                     <Download class="h-4 w-4" />
                     Export Data
                 </button>
