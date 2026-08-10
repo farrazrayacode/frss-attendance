@@ -121,7 +121,7 @@ function exportCamerasToCSV() {
 
     async function applyFilters() { 
         openCameraFilters = false;
-        await queryClient.invalidateQueries({ queryKey: camerasQueryKey });
+        await queryClient.invalidateQueries({ queryKey: ['cameras'] });
     }
 
     async function resetFilters() { 
@@ -129,7 +129,7 @@ function exportCamerasToCSV() {
         selectedLocationFilter = '';
         selectedStatusFilter = '';
         openCameraFilters = false;
-        await queryClient.invalidateQueries({ queryKey: camerasQueryKey }); 
+        await queryClient.invalidateQueries({ queryKey: ['cameras'] }); 
     }
 
     onMount(() => {
