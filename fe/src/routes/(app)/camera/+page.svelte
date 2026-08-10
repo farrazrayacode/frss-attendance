@@ -4,7 +4,7 @@
     import { Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Info, PencilLine, Plus, RefreshCcw, Save, Settings, Trash, XCircle, Camera } from '@lucide/svelte';
     import Breadcrumb from '../../../components/breadcrumb/Breadcrumb.svelte';
     import { slide } from 'svelte/transition';
-    import { getMonitoringLocations, getAllCameras } from './api'; 
+    import { getMonitoringLocations, getAllCameras, createCamera } from './api'; 
     import type { MonitoringFeed, MonitoringFeed as CameraData } from '$lib/interfaces/monitoring.interfaces'; 
     import { formatDistanceToNow, parseISO } from 'date-fns';
 
@@ -14,6 +14,69 @@
     let searchCamera = $state('');
     let selectedLocationFilter = $state('');
     let selectedStatusFilter: 'Online' | 'Offline' | '' = $state('');
+    let showAddCameraModal = $state(false);
+let newCameraName = $state('');
+let newCameraStreamUrl = $state('');
+let newCameraLocation = $state('');
+let newCameraIp = $state('');
+let addCameraError = $state('');
+
+async function submitAddCamera() {
+    addCameraError = '';
+    if (!newCameraName || !newCameraStreamUrl) {
+        addCameraError = 'Nama dan Stream URL wajib diisi.';
+        return;
+    }
+    try {
+        await createCamera({
+            name: newCameraName,
+            streamUrl: newCameraStreamUrl,
+            location: newCameraLocation || undefined,
+            ipAddress: newCameraIp || undefined
+        });
+        await queryClient.invalidateQueries({ queryKey: ['cameras'] });
+        showAddCameraModal = false;
+        newCameraName = '';
+        newCameraStreamUrl = '';
+        newCameraLocation = '';
+        newCameraIp = '';
+    } catch (error) {
+        addCameraError = 'Gagal menambah kamera. Cek console untuk detail.';
+    }
+}
+
+function exportCamerasToCSV() {
+    const cameras = $camerasQuery.data || [];
+    if (cameras.length === 0) {
+        alert('Tidak ada data kamera untuk diekspor.');
+        return;
+    }
+
+    const headers = ['ID', 'Nama', 'Lokasi', 'IP Address', 'Status', 'Stream URL', 'Terakhir Update'];
+    const rows = cameras.map((cam) => [
+        cam.id,
+        cam.name,
+        cam.location || '',
+        cam.ipAddress || '',
+        cam.isOnline ? 'Online' : 'Offline',
+        cam.streamUrl || '',
+        cam.lastUpdated ? new Date(cam.lastUpdated).toLocaleString() : ''
+    ]);
+
+    const csvContent = [headers, ...rows]
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `cameras-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
 
     let checkboxMotion = $state(false);
     let checkboxFace = $state(false);
@@ -135,11 +198,11 @@
                     bind:value={searchCamera}
                     class="text-input w-full lg:w-fit"
                 />
-                <button class="btn-primary-sm" aria-label="downloadButton">
+                <button class="btn-primary-sm" aria-label="addCameraButton" onclick={() => (showAddCameraModal = true)}>
                     <Plus class="h-4 w-4" />
                     Add Camera
                 </button>
-                <button class="btn-secondary-outline-md" aria-label="downloadButton">
+                <button class="btn-secondary-outline-md" aria-label="downloadButton" onclick={exportCamerasToCSV}>
                     <Download class="h-4 w-4" />
                     Export Data
                 </button>
@@ -720,4 +783,28 @@
     </div>
 </div>
 
-
+{#if showAddCameraModal}
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+          <div class="mb-4 flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Add Camera</h3>
+              <button aria-label="closeModal" onclick={() => (showAddCameraModal = false)}>
+                  <XCircle class="h-5 w-5 text-gray-400" />
+              </button>
+          </div>
+          <div class="flex flex-col gap-y-3">
+              {#if addCameraError}
+                  <p class="text-sm text-red-500">{addCameraError}</p>
+              {/if}
+              <input class="form-input" type="text" placeholder="Nama Kamera *" bind:value={newCameraName} />
+              <input class="form-input" type="text" placeholder="Stream URL (rtsp://...) *" bind:value={newCameraStreamUrl} />
+              <input class="form-input" type="text" placeholder="Lokasi" bind:value={newCameraLocation} />
+              <input class="form-input" type="text" placeholder="IP Address" bind:value={newCameraIp} />
+              <div class="mt-2 flex justify-end gap-x-2">
+                  <button class="btn-secondary-md" onclick={() => (showAddCameraModal = false)}>Cancel</button>
+                  <button class="btn-primary-md" onclick={submitAddCamera}>Save</button>
+              </div>
+          </div>
+      </div>
+  </div>
+{/if}
