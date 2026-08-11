@@ -4,7 +4,7 @@
     import { Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Info, PencilLine, Plus, RefreshCcw, Save, Settings, Trash, XCircle, Camera } from '@lucide/svelte';
     import Breadcrumb from '../../../components/breadcrumb/Breadcrumb.svelte';
     import { slide } from 'svelte/transition';
-    import { getMonitoringLocations, getAllCameras, createCamera, updateCamera } from './api';
+    import { getMonitoringLocations, getAllCameras, createCamera, updateCamera, deleteCamera } from './api';
     import type { MonitoringFeed, MonitoringFeed as CameraData } from '$lib/interfaces/monitoring.interfaces'; 
     import { formatDistanceToNow, parseISO } from 'date-fns';
 
@@ -64,6 +64,18 @@ function openEditModal(camera: CameraData) {
     newCameraIp = camera.ipAddress || '';
     addCameraError = '';
     showAddCameraModal = true;
+}
+
+async function handleDeleteCamera(camera: CameraData) {
+    const confirmed = confirm(`Yakin ingin menghapus kamera "${camera.name}"?`);
+    if (!confirmed) return;
+    try {
+        await deleteCamera(camera.id);
+        await queryClient.invalidateQueries({ queryKey: ['cameras'] });
+    } catch (error) {
+        alert('Gagal menghapus kamera. Cek console untuk detail.');
+        console.error(error);
+    }
 }
 
 function exportCamerasToCSV() {
@@ -423,7 +435,7 @@ function exportCamerasToCSV() {
                                             <button aria-label="settingButton" class="btn-secondary-icon">
                                                 <Settings class="h-4 w-4" />
                                             </button>
-                                            <button aria-label="deleteButton" class="btn-secondary-icon">
+                                            <button aria-label="deleteButton" class="btn-secondary-icon" onclick={() => handleDeleteCamera(camera)}>
                                                 <Trash class="h-4 w-4" />
                                             </button>
                                         </div>
