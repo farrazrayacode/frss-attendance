@@ -4,23 +4,22 @@
     import { Check, CheckCircle, ChevronDown, ChevronLeft, ChevronRight, Download, Filter, Info, PencilLine, Plus, RefreshCcw, Save, Settings, Trash, XCircle, Camera } from '@lucide/svelte';
     import Breadcrumb from '../../../components/breadcrumb/Breadcrumb.svelte';
     import { slide } from 'svelte/transition';
-    import { getMonitoringLocations, getAllCameras, createCamera, updateCamera, deleteCamera } from './api';
+    import { getMonitoringLocations, getAllCameras, createCamera } from './api'; 
     import type { MonitoringFeed, MonitoringFeed as CameraData } from '$lib/interfaces/monitoring.interfaces'; 
     import { formatDistanceToNow, parseISO } from 'date-fns';
 
-    const queryClient = useQueryClient(); 
+	const queryClient = useQueryClient();
 
     let openCameraFilters = $state(false);
     let searchCamera = $state('');
     let selectedLocationFilter = $state('');
     let selectedStatusFilter: 'Online' | 'Offline' | '' = $state('');
     let showAddCameraModal = $state(false);
-    let editingCameraId: number | null = $state(null);
-    let newCameraName = $state('');
-    let newCameraStreamUrl = $state('');
-    let newCameraLocation = $state('');
-    let newCameraIp = $state('');
-    let addCameraError = $state('');
+let newCameraName = $state('');
+let newCameraStreamUrl = $state('');
+let newCameraLocation = $state('');
+let newCameraIp = $state('');
+let addCameraError = $state('');
 
 async function submitAddCamera() {
     addCameraError = '';
@@ -29,144 +28,110 @@ async function submitAddCamera() {
         return;
     }
     try {
-        if (editingCameraId !== null) {
-            await updateCamera(editingCameraId, {
-                name: newCameraName,
-                streamUrl: newCameraStreamUrl,
-                location: newCameraLocation || undefined,
-                ipAddress: newCameraIp || undefined
-            });
-        } else {
-            await createCamera({
-                name: newCameraName,
-                streamUrl: newCameraStreamUrl,
-                location: newCameraLocation || undefined,
-                ipAddress: newCameraIp || undefined
-            });
-        }
+        await createCamera({
+            name: newCameraName,
+            streamUrl: newCameraStreamUrl,
+            location: newCameraLocation || undefined,
+            ipAddress: newCameraIp || undefined
+        });
         await queryClient.invalidateQueries({ queryKey: ['cameras'] });
         showAddCameraModal = false;
-        editingCameraId = null;
         newCameraName = '';
         newCameraStreamUrl = '';
         newCameraLocation = '';
         newCameraIp = '';
     } catch (error) {
-        addCameraError = 'Gagal menyimpan kamera. Cek console untuk detail.';
+        addCameraError = 'Gagal menambah kamera. Cek console untuk detail.';
     }
 }
 
-function openEditModal(camera: CameraData) {
-    editingCameraId = camera.id;
-    newCameraName = camera.name;
-    newCameraStreamUrl = camera.streamUrl || '';
-    newCameraLocation = camera.location || '';
-    newCameraIp = camera.ipAddress || '';
-    addCameraError = '';
-    showAddCameraModal = true;
-}
+	function exportCamerasToCSV() {
+		const cameras = $camerasQuery.data || [];
+		if (cameras.length === 0) {
+			alert('Tidak ada data kamera untuk diekspor.');
+			return;
+		}
 
-async function handleDeleteCamera(camera: CameraData) {
-    const confirmed = confirm(`Yakin ingin menghapus kamera "${camera.name}"?`);
-    if (!confirmed) return;
-    try {
-        await deleteCamera(camera.id);
-        await queryClient.invalidateQueries({ queryKey: ['cameras'] });
-    } catch (error) {
-        alert('Gagal menghapus kamera. Cek console untuk detail.');
-        console.error(error);
-    }
-}
+		const headers = ['ID', 'Nama', 'Lokasi', 'IP Address', 'Status', 'Stream URL', 'Terakhir Update'];
+		const rows = cameras.map((cam) => [
+			cam.id,
+			cam.name,
+			cam.location || '',
+			cam.ipAddress || '',
+			cam.isOnline ? 'Online' : 'Offline',
+			cam.streamUrl || '',
+			cam.lastUpdated ? new Date(cam.lastUpdated).toLocaleString() : ''
+		]);
 
-function exportCamerasToCSV() {
-    const cameras = $camerasQuery.data || [];
-    if (cameras.length === 0) {
-        alert('Tidak ada data kamera untuk diekspor.');
-        return;
-    }
+		const csvContent = [headers, ...rows]
+			.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+			.join('\n');
 
-    const headers = ['ID', 'Nama', 'Lokasi', 'IP Address', 'Status', 'Stream URL', 'Terakhir Update'];
-    const rows = cameras.map((cam) => [
-        cam.id,
-        cam.name,
-        cam.location || '',
-        cam.ipAddress || '',
-        cam.isOnline ? 'Online' : 'Offline',
-        cam.streamUrl || '',
-        cam.lastUpdated ? new Date(cam.lastUpdated).toLocaleString() : ''
-    ]);
+		const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+		const url = URL.createObjectURL(blob);
+		const link = document.createElement('a');
+		link.href = url;
+		link.download = `cameras-export-${new Date().toISOString().slice(0, 10)}.csv`;
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		URL.revokeObjectURL(url);
+	}
 
-    const csvContent = [headers, ...rows]
-        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-        .join('\n');
+	let checkboxMotion = $state(false);
+	let checkboxFace = $state(false);
+	let checkboxIntrusion = $state(false);
+	let checkboxUnattended = $state(false);
+	let checkboxInApp = $state(false);
+	let checkboxEmail = $state(false);
+	let checkboxSMS = $state(false);
+	let checkboxSound = $state(false);
+	let checkboxPreRecording = $state(false);
+	let checkboxPostRecording = $state(false);
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `cameras-export-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
+	const locationsQuery = createQuery({
+		queryKey: ['cameraLocations'],
+		queryFn: () => getMonitoringLocations()
+	});
 
-    let checkboxMotion = $state(false);
-    let checkboxFace = $state(false);
-    let checkboxIntrusion = $state(false);
-    let checkboxUnattended = $state(false);
-    let checkboxInApp = $state(false);
-    let checkboxEmail = $state(false);
-    let checkboxSMS = $state(false);
-    let checkboxSound = $state(false);
-    let checkboxPreRecording = $state(false);
-    let checkboxPostRecording = $state(false);
+	const camerasQueryKey = $derived(['cameras', searchCamera, selectedLocationFilter, selectedStatusFilter]);
+	const camerasQuery = createQuery({
+		queryKey: camerasQueryKey,
+		queryFn: async () => {
+			return await getAllCameras(searchCamera, selectedLocationFilter, selectedStatusFilter);
+		}
+	});
 
-    const locationsQuery = createQuery({
-        queryKey: ['cameraLocations'],
-        queryFn: () => getMonitoringLocations()
-    });
+	const totalCameras = $derived($camerasQuery.data?.length || 0);
+	const onlineCameras = $derived($camerasQuery.data?.filter((cam) => cam.isOnline).length || 0);
+	const offlineCameras = $derived($camerasQuery.data?.filter((cam) => !cam.isOnline).length || 0);
+	const maintenanceCameras = $derived(0);
 
-    const camerasQueryKey = $derived(['cameras', searchCamera, selectedLocationFilter, selectedStatusFilter]); 
-    const camerasQuery = createQuery({
-        queryKey: camerasQueryKey,
-        queryFn: async () => {
-            return await getAllCameras(searchCamera, selectedLocationFilter, selectedStatusFilter);
-        }
-    });
+	function formatLastUpdated(dateString: Date | null | undefined): string {
+		if (!dateString) return 'N/A';
+		try {
+			const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
+			return formatDistanceToNow(date, { addSuffix: true });
+		} catch (e) {
+			console.error('Failed to parse date:', dateString, e);
+			return 'Invalid Date';
+		}
+	}
 
-    const totalCameras = $derived($camerasQuery.data?.length || 0); 
-    const onlineCameras = $derived($camerasQuery.data?.filter(cam => cam.isOnline).length || 0);
-    const offlineCameras = $derived($camerasQuery.data?.filter(cam => !cam.isOnline).length || 0); 
-    const maintenanceCameras = $derived(0); 
+	async function applyFilters() {
+		openCameraFilters = false;
+		await queryClient.invalidateQueries({ queryKey: ['cameras'] });
+	}
 
+	async function resetFilters() {
+		searchCamera = '';
+		selectedLocationFilter = '';
+		selectedStatusFilter = '';
+		openCameraFilters = false;
+		await queryClient.invalidateQueries({ queryKey: ['cameras'] });
+	}
 
-    function formatLastUpdated(dateString: Date | null | undefined): string {
-        if (!dateString) return 'N/A';
-        try {
-            const date = typeof dateString === 'string' ? parseISO(dateString) : dateString;
-            return formatDistanceToNow(date, { addSuffix: true });
-        } catch (e) {
-            console.error("Failed to parse date:", dateString, e);
-            return 'Invalid Date';
-        }
-    }
-
-    async function applyFilters() { 
-        openCameraFilters = false;
-        await queryClient.invalidateQueries({ queryKey: ['cameras'] });
-    }
-
-    async function resetFilters() { 
-        searchCamera = '';
-        selectedLocationFilter = '';
-        selectedStatusFilter = '';
-        openCameraFilters = false;
-        await queryClient.invalidateQueries({ queryKey: ['cameras'] }); 
-    }
-
-    onMount(() => {
-    });
+	onMount(() => {});
 </script>
 
 <div class="flex flex-col gap-y-6">
@@ -429,13 +394,13 @@ function exportCamerasToCSV() {
                                     </td>
                                     <td class="px-5 py-4 sm:px-6">
                                         <div class="flex items-center gap-x-2">
-                                            <button aria-label="editButton" class="btn-secondary-icon" onclick={() => openEditModal(camera)}>
-                                                <PencilLine class="h-4 w-4"/>
+                                            <button aria-label="editButton" class="btn-secondary-icon">
+                                                <PencilLine class="h-4 w-4" />
                                             </button>
                                             <button aria-label="settingButton" class="btn-secondary-icon">
                                                 <Settings class="h-4 w-4" />
                                             </button>
-                                            <button aria-label="deleteButton" class="btn-secondary-icon" onclick={() => handleDeleteCamera(camera)}>
+                                            <button aria-label="deleteButton" class="btn-secondary-icon">
                                                 <Trash class="h-4 w-4" />
                                             </button>
                                         </div>
@@ -816,12 +781,13 @@ function exportCamerasToCSV() {
     </div>
 </div>
 
+<!-- Modal Add Camera -->
 {#if showAddCameraModal}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
           <div class="mb-4 flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">{editingCameraId !== null ? 'Edit Camera' : 'Add Camera'}</h3>
-              <button aria-label="closeModal" onclick={() => { showAddCameraModal = false; editingCameraId = null; }}>
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Add Camera</h3>
+              <button aria-label="closeModal" onclick={() => (showAddCameraModal = false)}>
                   <XCircle class="h-5 w-5 text-gray-400" />
               </button>
           </div>
@@ -834,7 +800,7 @@ function exportCamerasToCSV() {
               <input class="form-input" type="text" placeholder="Lokasi" bind:value={newCameraLocation} />
               <input class="form-input" type="text" placeholder="IP Address" bind:value={newCameraIp} />
               <div class="mt-2 flex justify-end gap-x-2">
-                  <button class="btn-secondary-md" onclick={() => { showAddCameraModal = false; editingCameraId = null; }}>Cancel</button>
+                  <button class="btn-secondary-md" onclick={() => (showAddCameraModal = false)}>Cancel</button>
                   <button class="btn-primary-md" onclick={submitAddCamera}>Save</button>
               </div>
           </div>

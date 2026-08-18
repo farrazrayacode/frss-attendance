@@ -76,16 +76,16 @@
     );
 
     // Active count: from processing session or Firebase depending on mode
-    const activeCount = $derived(
-        viewMode === 'processing' && countingStatus
-            ? countingStatus.total_count
-            : (latest?.chicken_total ?? 0)
-    );
+    let activeCount = $derived(
+    (viewMode as string) === 'processing' && countingStatus
+        ? (countingStatus as any).total_count
+        : ((latest as any)?.chicken_total ?? 0)
+);
 
-    const isCountingRunning = $derived(countingStatus?.running === true);
-    const isPaused          = $derived(countingStatus?.status === 'paused');
-    const isTranscoding     = $derived(countingStatus?.status === 'transcoding');
-    const csInfo            = $derived(countingStatusInfo(countingStatus?.status ?? null));
+let isCountingRunning = $derived(Boolean((countingStatus as any)?.running));
+let isPaused          = $derived(((countingStatus as any)?.status as string) === 'paused');
+let isTranscoding     = $derived(((countingStatus as any)?.status as string) === 'transcoding');
+let csInfo            = $derived(countingStatusInfo((countingStatus as any)?.status ?? null));
 
     // ── CCTV helpers ──────────────────────────────────────────────────────────
     function startCountRefresh() {

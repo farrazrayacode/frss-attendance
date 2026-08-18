@@ -30,11 +30,11 @@
     let selectedDate: string = $state(todayString());
     let selectedYear: number = $state(new Date().getFullYear());
 
-    let sessions: ChickenSession[]      = $state([]);
+    let sessions: ChickenSession[]         = $state([]);
     let dailySummary: ChickenDailySummary[] = $state([]);
-    let monthlyData: MonthlyRekap[]     = $state([]);
-    let yearlyData: YearlyRekap[]       = $state([]);
-    let liveSession: LiveSession | null = $state(null);
+    let monthlyData: MonthlyRekap[]        = $state([]);
+    let yearlyData: YearlyRekap[]          = $state([]);
+    let liveSession: LiveSession | null    = $state(null);
 
     let isLoading = $state(false);
     let lastRefresh: Date | null = $state(null);
@@ -124,20 +124,20 @@
     }
 
     // ── Summary stats ─────────────────────────────────────────────────────────
-    const todayTotal = $derived(() => {
+    const todayTotal = $derived.by(() => {
         const today = todayString();
         const d = dailySummary.find(x => x.date === today);
         return d?.total_chickens ?? 0;
     });
 
-    const monthTotal = $derived(() => {
+    const monthTotal = $derived.by(() => {
         const ym = todayString().slice(0, 7); // YYYY-MM
         return dailySummary
             .filter(x => x.date.startsWith(ym))
             .reduce((sum, x) => sum + x.total_chickens, 0);
     });
 
-    const yearTotal = $derived(() => {
+    const yearTotal = $derived.by(() => {
         const y = todayString().slice(0, 4);
         return dailySummary
             .filter(x => x.date.startsWith(y))
@@ -312,7 +312,7 @@
                     <Activity class="h-4 w-4 text-brand-500" />
                 </span>
             </div>
-            <p class="text-3xl font-bold text-gray-800 dark:text-white/90 tabular-nums">{todayTotal()}</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-white/90 tabular-nums">{todayTotal}</p>
             <p class="mt-1 text-xs text-gray-400">ekor · {todaySessions} sesi</p>
         </div>
 
@@ -324,7 +324,7 @@
                     <CalendarDays class="h-4 w-4 text-success-500" />
                 </span>
             </div>
-            <p class="text-3xl font-bold text-gray-800 dark:text-white/90 tabular-nums">{monthTotal()}</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-white/90 tabular-nums">{monthTotal}</p>
             <p class="mt-1 text-xs text-gray-400">ekor</p>
         </div>
 
@@ -336,7 +336,7 @@
                     <TrendingUp class="h-4 w-4 text-warning-500" />
                 </span>
             </div>
-            <p class="text-3xl font-bold text-gray-800 dark:text-white/90 tabular-nums">{yearTotal()}</p>
+            <p class="text-3xl font-bold text-gray-800 dark:text-white/90 tabular-nums">{yearTotal}</p>
             <p class="mt-1 text-xs text-gray-400">ekor</p>
         </div>
 
@@ -545,8 +545,9 @@
             <div class="p-5 flex flex-col gap-y-4">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-x-2">
-                        <label class="text-sm text-gray-500">Tahun:</label>
+                        <label for="year-select" class="text-sm text-gray-500">Tahun:</label>
                         <select
+                            id="year-select"
                             bind:value={selectedYear}
                             onchange={() => fetchMonthly(selectedYear)}
                             class="rounded-lg border border-gray-200 bg-transparent px-3 py-1.5 text-sm text-gray-700 dark:border-gray-700 dark:text-gray-300"
@@ -624,10 +625,10 @@
                             <tbody>
                                 {#each yearlyData as y}
                                     <tr class="border-b border-gray-50 dark:border-gray-800/50 hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
-                                        <td class="py-3 pr-4 text-sm font-semibold text-gray-700 dark:text-gray-300">{y.year}</td>
+                                        <td class="py-3 pr-4 text-sm font-medium text-gray-700 dark:text-gray-300">{y.year}</td>
                                         <td class="py-3 pr-4 text-right text-sm text-gray-500">{y.session_count}</td>
                                         <td class="py-3 text-right">
-                                            <span class="font-mono text-lg font-bold text-warning-600">{y.total_chickens.toLocaleString()}</span>
+                                            <span class="font-mono text-sm font-semibold text-warning-600">{y.total_chickens.toLocaleString()}</span>
                                             <span class="text-xs text-gray-400 ml-1">ekor</span>
                                         </td>
                                     </tr>

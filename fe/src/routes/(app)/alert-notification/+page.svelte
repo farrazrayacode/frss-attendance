@@ -9,7 +9,6 @@
     import { AlertCircle } from 'lucide-svelte';
     import { slide } from 'svelte/transition'; 
 
-
     let openAlertFilters = $state(false);
     let selectedAlertType: string = $state('');
     let selectedLocationFilter: string = $state('');
@@ -28,7 +27,6 @@
     let checkboxEmail = $state(false);
     let checkboxSMS = $state(false);
     let checkboxSound = $state(false);
-
 
     function formatAlertTime(date: Date): string {
         const d = new Date(date);
@@ -92,20 +90,17 @@
 
 <div class="flex flex-col gap-y-6">
     <Breadcrumb pageName="Alert & Notification" />
+    
     <!-- Alert History -->
-    <div
-        class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
-    >
-        <div
-            class="flex flex-col gap-y-2 border-b border-gray-100 px-6 py-4 md:flex-row md:items-center md:justify-between dark:border-gray-800"
-        >
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-col gap-y-2 border-b border-gray-100 px-6 py-4 md:flex-row md:items-center md:justify-between dark:border-gray-800">
             <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Alert History</h3>
             <div class="flex items-center gap-x-2">
-                <button aria-label="exportButton" class="btn-primary-sm">
+                <button aria-label="exportButton" class="btn-primary-sm flex items-center gap-x-1">
                     <Download class="h-4 w-4" />
                     Export
                 </button>
-                <button aria-label="refreshButton" class="btn-primary-sm" onclick={refreshAlerts}>
+                <button aria-label="refreshButton" class="btn-primary-sm flex items-center gap-x-1" onclick={refreshAlerts}>
                     <RefreshCcw class="h-4 w-4" />
                     Refresh
                 </button>
@@ -113,7 +108,7 @@
                     <button
                         onclick={() => (openAlertFilters = !openAlertFilters)}
                         aria-label="filterButton"
-                        class="btn-primary-outline-sm"
+                        class="btn-primary-outline-sm flex items-center gap-x-1"
                     >
                         <Filter class="h-4 w-4" />
                         Filters
@@ -128,17 +123,12 @@
                                         <select bind:value={selectedAlertType} class="select-input">
                                             <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                             {#each ['motion', 'intrusion', 'camera'] as option} 
-                                                <option
-                                                    value={option}
-                                                    class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                                >
+                                                <option value={option} class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">
                                                     {option}
                                                 </option>
                                             {/each}
                                         </select>
-                                        <span
-                                            class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                        >
+                                        <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                             <ChevronDown class="h-5 w-5" />
                                         </span>
                                     </div>
@@ -150,17 +140,12 @@
                                         <select bind:value={selectedLocationFilter} class="select-input">
                                             <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                             {#each monitoringLocations as locationOption}
-                                                <option
-                                                    value={locationOption.location}
-                                                    class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                                >
+                                                <option value={locationOption.location} class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">
                                                     {locationOption.location}
                                                 </option>
                                             {/each}
                                         </select>
-                                        <span
-                                            class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                        >
+                                        <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                             <ChevronDown class="h-5 w-5" />
                                         </span>
                                     </div>
@@ -172,27 +157,20 @@
                                         <select bind:value={selectedDateRange} class="select-input">
                                             <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                             {#each ['Yesterday', 'Last 7 Days', 'Last 30 Days'] as option}
-                                                <option
-                                                    value={option}
-                                                    class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                                >
+                                                <option value={option} class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">
                                                     {option}
                                                 </option>
                                             {/each}
                                         </select>
-                                        <span
-                                            class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                        >
+                                        <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                             <ChevronDown class="h-5 w-5" />
                                         </span>
                                     </div>
                                 </li>
                                 <!-- Apply & Reset Buttons -->
-                                <li class="mt-4 flex flex-col justify-end lg:flex-row gap-x-2">
-                                    <button class="btn-secondary-md" onclick={resetFilters}>
-                                        Reset
-                                    </button>
-                                    <button class="btn-primary-md" onclick={applyFilters}>
+                                <li class="mt-4 flex flex-col justify-end gap-x-2 lg:flex-row">
+                                    <button class="btn-secondary-md" onclick={resetFilters}>Reset</button>
+                                    <button class="btn-primary-md flex items-center gap-x-1" onclick={applyFilters}>
                                         <Filter class="h-4 w-4" />
                                         Apply Filters
                                     </button>
@@ -203,26 +181,24 @@
                 </div>
             </div>
         </div>
+
         <div class="flex flex-col gap-y-4 px-6 py-5 lg:gap-y-6">
             <!-- Data -->
             <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {#if isLoadingHistory}
                     <div class="col-span-full py-4 text-center text-gray-500">Loading alert history...</div>
                 {:else if alertHistoryData.length === 0}
-                    <div class="col-span-full py-4 text-center text-gray-500">No alert history found.</div>
+                    <div class="col-span-full py-8 text-center text-gray-500">No alert history found.</div>
                 {:else}
                     {#each alertHistoryData as liveAlert}
-                        <div
-                            class="hover:bg-brand-50 w-full rounded-lg bg-gray-100/70 px-6 py-5 transition duration-300"
-                        >
+                        <div class="hover:bg-brand-50 w-full rounded-lg bg-gray-100/70 px-6 py-5 transition duration-300">
                             <div class="flex flex-col gap-y-4 lg:flex-row lg:items-center lg:justify-between">
                                 <div class="flex items-center gap-x-3">
                                     <div class="bg-brand-500 flex h-11 w-11 items-center justify-center rounded-full">
-                                        <!-- Pastikan liveAlert.icon sudah ada dan merupakan komponen Svelte -->
                                         {#if liveAlert.icon}
                                             <svelte:component this={liveAlert.icon} class="h-6 w-6 text-white" />
                                         {:else}
-                                            <AlertCircle class="h-6 w-6 text-white" /> <!-- Fallback icon -->
+                                            <AlertCircle class="h-6 w-6 text-white" />
                                         {/if}
                                     </div>
                                     <div class="flex flex-col gap-y-1">
@@ -240,16 +216,10 @@
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-x-2">
-                                    <button
-                                        aria-label="checkButton"
-                                        class="btn-secondary-icon"
-                                    >
+                                    <button aria-label="checkButton" class="btn-secondary-icon">
                                         <Check class="h-4 w-4" />
                                     </button>
-                                    <button
-                                        aria-label="maximizeButton"
-                                        class="btn-secondary-icon"
-                                    >
+                                    <button aria-label="maximizeButton" class="btn-secondary-icon">
                                         <Maximize class="h-4 w-4" />
                                     </button>
                                 </div>
@@ -258,18 +228,18 @@
                     {/each}
                 {/if}
             </div>
-            <!-- Pagination -->
+
+            <!-- Pagination (Fixed logic) -->
             <div class="flex flex-col items-center gap-y-4 lg:flex-row lg:justify-between">
-                <span class="text-theme-sm text-gray-400">Showing 10 to 10 of {alertHistoryData.length} entries</span>
+                <span class="text-theme-sm text-gray-400">
+                    Showing {alertHistoryData.length === 0 ? 0 : 1} to {alertHistoryData.length < 10 ? alertHistoryData.length : 10} of {alertHistoryData.length} entries
+                </span>
                 <div class="flex items-center gap-x-3">
                     <button aria-label="previousButton" class="btn-secondary-icon">
                         <ChevronLeft class="h-5 w-5" />
                     </button>
                     <div class="flex items-center gap-x-1">
-                        <button
-                            aria-label="pageButton"
-                            class="pagination-page text-brand-500 bg-blue-500/[0.08]">1</button
-                        >
+                        <button aria-label="pageButton" class="pagination-page text-brand-500 bg-blue-500/[0.08]">1</button>
                         <button aria-label="pageButton" class="pagination-page">2</button>
                     </div>
                     <button aria-label="nextButton" class="btn-secondary-icon">
@@ -286,9 +256,7 @@
                                 </option>
                             {/each}
                         </select>
-                        <span
-                            class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                        >
+                        <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                             <ChevronDown class="h-5 w-5" />
                         </span>
                     </div>
@@ -296,37 +264,24 @@
             </div>
         </div>
     </div>
+
     <!-- Notification Settings -->
-    <div
-        class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
-    >
-        <div
-            class="flex flex-col gap-y-2 border-b border-gray-100 px-6 py-5 md:flex-row md:items-center md:justify-between dark:border-gray-800"
-        >
+    <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="flex flex-col gap-y-2 border-b border-gray-100 px-6 py-5 md:flex-row md:items-center md:justify-between dark:border-gray-800">
             <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Notification Settings</h3>
         </div>
         <div class="flex flex-col gap-y-6 px-6 py-5">
             <div class="grid grid-cols-1 gap-y-4 lg:grid-cols-2 lg:gap-x-8">
                 <!-- Alert Types -->
                 <div class="flex flex-col gap-y-4">
-                    <p class="text-theme-md font-medium text-gray-800">Alert Types</p>
+                    <p class="text-theme-md font-medium text-gray-800 dark:text-white/90">Alert Types</p>
                     <div class="flex flex-col gap-y-4">
                         <!-- Motion Detection -->
                         <div class="flex items-center justify-between">
-                            <label
-                                for="checkboxMotion"
-                                class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                            >
+                            <label for="checkboxMotion" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                                 <div class="relative">
-                                    <input
-                                        type="checkbox"
-                                        id="checkboxMotion"
-                                        class="sr-only"
-                                        bind:checked={checkboxMotion}
-                                    />
-                                    <div
-                                        class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxMotion ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                    >
+                                    <input type="checkbox" id="checkboxMotion" class="sr-only" bind:checked={checkboxMotion} />
+                                    <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxMotion ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                         <span class={checkboxMotion ? '' : 'opacity-0'}>
                                             <Check class="h-4 w-4 text-white" />
                                         </span>
@@ -338,37 +293,21 @@
                                 <select class="select-input">
                                     <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                     {#each ['Medium', 'Low', 'High'] as option}
-                                        <option
-                                            value={option}
-                                            class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                        >
-                                            {option}
-                                        </option>
+                                        <option value={option} class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">{option}</option>
                                     {/each}
                                 </select>
-                                <span
-                                    class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                >
+                                <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                     <ChevronDown class="h-5 w-5" />
                                 </span>
                             </div>
                         </div>
+
                         <!-- Face Recognition -->
                         <div class="flex items-center justify-between">
-                            <label
-                                for="checkboxFace"
-                                class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                            >
+                            <label for="checkboxFace" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                                 <div class="relative">
-                                    <input
-                                        type="checkbox"
-                                        id="checkboxFace"
-                                        class="sr-only"
-                                        bind:checked={checkboxFace}
-                                    />
-                                    <div
-                                        class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxFace ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                    >
+                                    <input type="checkbox" id="checkboxFace" class="sr-only" bind:checked={checkboxFace} />
+                                    <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxFace ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                         <span class={checkboxFace ? '' : 'opacity-0'}>
                                             <Check class="h-4 w-4 text-white" />
                                         </span>
@@ -380,37 +319,21 @@
                                 <select class="select-input">
                                     <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                     {#each ['Medium', 'Low', 'High'] as option}
-                                        <option
-                                            value={option}
-                                            class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                        >
-                                            {option}
-                                        </option>
+                                        <option value={option} class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">{option}</option>
                                     {/each}
                                 </select>
-                                <span
-                                    class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                >
+                                <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                     <ChevronDown class="h-5 w-5" />
                                 </span>
                             </div>
                         </div>
+
                         <!-- Intrusion Detection -->
                         <div class="flex items-center justify-between">
-                            <label
-                                for="checkboxIntrusion"
-                                class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                            >
+                            <label for="checkboxIntrusion" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                                 <div class="relative">
-                                    <input
-                                        type="checkbox"
-                                        id="checkboxIntrusion"
-                                        class="sr-only"
-                                        bind:checked={checkboxIntrusion}
-                                    />
-                                    <div
-                                        class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxIntrusion ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                    >
+                                    <input type="checkbox" id="checkboxIntrusion" class="sr-only" bind:checked={checkboxIntrusion} />
+                                    <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxIntrusion ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                         <span class={checkboxIntrusion ? '' : 'opacity-0'}>
                                             <Check class="h-4 w-4 text-white" />
                                         </span>
@@ -422,37 +345,21 @@
                                 <select class="select-input">
                                     <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                     {#each ['Medium', 'Low', 'High'] as option}
-                                        <option
-                                            value={option}
-                                            class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                        >
-                                            {option}
-                                        </option>
+                                        <option value={option} class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">{option}</option>
                                     {/each}
                                 </select>
-                                <span
-                                    class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                >
+                                <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                     <ChevronDown class="h-5 w-5" />
                                 </span>
                             </div>
                         </div>
+
                         <!-- Unattended Object -->
                         <div class="flex items-center justify-between">
-                            <label
-                                for="checkboxUnattended"
-                                class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                            >
+                            <label for="checkboxUnattended" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                                 <div class="relative">
-                                    <input
-                                        type="checkbox"
-                                        id="checkboxUnattended"
-                                        class="sr-only"
-                                        bind:checked={checkboxUnattended}
-                                    />
-                                    <div
-                                        class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxUnattended ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                    >
+                                    <input type="checkbox" id="checkboxUnattended" class="sr-only" bind:checked={checkboxUnattended} />
+                                    <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxUnattended ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                         <span class={checkboxUnattended ? '' : 'opacity-0'}>
                                             <Check class="h-4 w-4 text-white" />
                                         </span>
@@ -464,42 +371,26 @@
                                 <select class="select-input">
                                     <option value="" class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">Select option</option>
                                     {#each ['Medium', 'Low', 'High'] as option}
-                                        <option
-                                            value={option}
-                                            class="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
-                                        >
-                                            {option}
-                                        </option>
+                                        <option value={option} class="text-gray-700 dark:bg-gray-900 dark:text-gray-400">{option}</option>
                                     {/each}
                                 </select>
-                                <span
-                                    class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400"
-                                >
+                                <span class="pointer-events-none absolute top-1/2 right-4 z-30 -translate-y-1/2 text-gray-500 dark:text-gray-400">
                                     <ChevronDown class="h-5 w-5" />
                                 </span>
                             </div>
                         </div>
                     </div>
                 </div>
+
                 <!-- Notification Methods -->
                 <div class="flex flex-col gap-y-4">
-                    <p class="text-theme-md font-medium text-gray-800">Notification Methods</p>
+                    <p class="text-theme-md font-medium text-gray-800 dark:text-white/90">Notification Methods</p>
                     <div class="flex flex-col gap-y-4">
                         <!-- In-App Notifications -->
-                        <label
-                            for="checkboxInApp"
-                            class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                        >
+                        <label for="checkboxInApp" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                             <div class="relative">
-                                <input
-                                    type="checkbox"
-                                    id="checkboxInApp"
-                                    class="sr-only"
-                                    bind:checked={checkboxInApp}
-                                />
-                                <div
-                                    class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxInApp ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                >
+                                <input type="checkbox" id="checkboxInApp" class="sr-only" bind:checked={checkboxInApp} />
+                                <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxInApp ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                     <span class={checkboxInApp ? '' : 'opacity-0'}>
                                         <Check class="h-4 w-4 text-white" />
                                     </span>
@@ -507,21 +398,12 @@
                             </div>
                             In-App Notifications
                         </label>
+
                         <!-- Email Notifications -->
-                        <label
-                            for="checkboxEmail"
-                            class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                        >
+                        <label for="checkboxEmail" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                             <div class="relative">
-                                <input
-                                    type="checkbox"
-                                    id="checkboxEmail"
-                                    class="sr-only"
-                                    bind:checked={checkboxEmail}
-                                />
-                                <div
-                                    class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxEmail ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                >
+                                <input type="checkbox" id="checkboxEmail" class="sr-only" bind:checked={checkboxEmail} />
+                                <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxEmail ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                     <span class={checkboxEmail ? '' : 'opacity-0'}>
                                         <Check class="h-4 w-4 text-white" />
                                     </span>
@@ -529,21 +411,12 @@
                             </div>
                             Email Notifications
                         </label>
+
                         <!-- SMS Notifications -->
-                        <label
-                            for="checkboxSMS"
-                            class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                        >
+                        <label for="checkboxSMS" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                             <div class="relative">
-                                <input
-                                    type="checkbox"
-                                    id="checkboxSMS"
-                                    class="sr-only"
-                                    bind:checked={checkboxSMS}
-                                />
-                                <div
-                                    class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxSMS ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                >
+                                <input type="checkbox" id="checkboxSMS" class="sr-only" bind:checked={checkboxSMS} />
+                                <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxSMS ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                     <span class={checkboxSMS ? '' : 'opacity-0'}>
                                         <Check class="h-4 w-4 text-white" />
                                     </span>
@@ -551,21 +424,12 @@
                             </div>
                             SMS Notifications
                         </label>
+
                         <!-- Sound Alerts -->
-                        <label
-                            for="checkboxSound"
-                            class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400"
-                        >
+                        <label for="checkboxSound" class="flex cursor-pointer items-center text-sm font-medium text-gray-700 select-none dark:text-gray-400">
                             <div class="relative">
-                                <input
-                                    type="checkbox"
-                                    id="checkboxSound"
-                                    class="sr-only"
-                                    bind:checked={checkboxSound}
-                                />
-                                <div
-                                    class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxSound ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}
-                                >
+                                <input type="checkbox" id="checkboxSound" class="sr-only" bind:checked={checkboxSound} />
+                                <div class={`hover:border-brand-500 dark:hover:border-brand-500 mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px] ${checkboxSound ? 'border-brand-500 bg-brand-500' : 'border-gray-300 bg-transparent dark:border-gray-700'}`}>
                                     <span class={checkboxSound ? '' : 'opacity-0'}>
                                         <Check class="h-4 w-4 text-white" />
                                     </span>
@@ -576,9 +440,11 @@
                     </div>
                 </div>
             </div>
-            <div class="flex justify-end">
-                <button class="btn-primary-md">
-                    <Save class="h-5 w-5" />
+
+            <!-- Save Settings Button -->
+            <div class="flex justify-end pt-4">
+                <button class="btn-primary-md flex items-center gap-x-2">
+                    <Save class="h-4 w-4" />
                     Save Settings
                 </button>
             </div>

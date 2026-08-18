@@ -1,32 +1,55 @@
 <script lang="ts">
-    import { auth1 } from '../../../firebase';
+    import { auth1 } from '../../../lib/firebase';
     import { signInWithEmailAndPassword } from 'firebase/auth';
 
     let email = $state('');
     let password = $state('');
     let errorMessage = $state('');
+    let successMessage = $state('');
     let isLoading = $state(false);
 
     async function handleSignin(e: Event) {
         e.preventDefault();
         isLoading = true;
         errorMessage = '';
+        successMessage = '';
 
         try {
             const userCredential = await signInWithEmailAndPassword(auth1, email, password);
-            console.log('Login berhasil:', userCredential.user);
+            const user = userCredential.user;
 
             // 1. Ambil Firebase ID Token
-            const token = await userCredential.user.getIdToken();
+            const token = await user.getIdToken();
 
-            // 2. Simpan token ke localStorage sebagai 'accessToken'
+            // 2. Simpan token & data user dasar ke localStorage
             localStorage.setItem('accessToken', token);
+            localStorage.setItem('user', JSON.stringify({
+                uid: user.uid,
+                email: user.email
+            }));
 
-            // 3. Pindah ke dashboard setelah token tersimpan
-            window.location.href = '/dashboard';
+            successMessage = 'Login berhasil! Mengalihkan ke dashboard...';
+
+            // 3. Pindah ke dashboard setelah delay singkat
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
+
         } catch (err: any) {
             console.error('Error login:', err);
-            errorMessage = err.message || 'Gagal login, periksa kembali email & password.';
+
+            // Penanganan pesan error yang lebih ramah
+            if (
+                err.code === 'auth/invalid-credential' || 
+                err.code === 'auth/wrong-password' || 
+                err.code === 'auth/user-not-found'
+            ) {
+                errorMessage = 'Email atau password salah. Silakan periksa kembali.';
+            } else if (err.code === 'auth/too-many-requests') {
+                errorMessage = 'Terlalu banyak percobaan gagal. Silakan coba lagi beberapa saat lagi.';
+            } else {
+                errorMessage = err.message || 'Gagal login, periksa koneksi internet Anda.';
+            }
         } finally {
             isLoading = false;
         }
@@ -39,6 +62,10 @@
 
         {#if errorMessage}
             <p class="mb-4 text-sm font-medium text-red-600">{errorMessage}</p>
+        {/if}
+
+        {#if successMessage}
+            <p class="mb-4 text-sm font-medium text-green-600">{successMessage}</p>
         {/if}
 
         <form onsubmit={handleSignin} class="space-y-4">
