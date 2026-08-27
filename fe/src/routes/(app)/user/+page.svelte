@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createQuery } from '@tanstack/svelte-query';
-  import { getAllUsers, getAllRoles, approveUser, rejectUser, deleteUser } from './api';
+  import { getAllUsers, getAllRoles, approveUser, rejectUser, deleteUser, createUser, updateUser, createRole, updateRole, deleteRole, resetUserPassword } from './api';
   import Breadcrumb from '../../../components/breadcrumb/Breadcrumb.svelte';
   // import { roleDummy } from './data'; 
   // import { userDummy } from './data'; 
@@ -412,8 +412,8 @@ function formatLastLogin(dateString: Date | null | undefined): string {
                                               <button aria-label="editButton" class="btn-secondary-icon">
                                                   <PencilLine class="h-4 w-4" />
                                               </button>
-                                              <button aria-label="resetPasswordButton" class="btn-secondary-icon">
-                                                  <Key class="h-4 w-4" />
+                                              <button aria-label="resetPasswordButton" class="btn-secondary-icon" onclick={() => handleResetPassword(user)}>
+                                                    <Key class="h-4 w-4" />
                                               </button>
                                               <button
                                                   aria-label="deleteButton"

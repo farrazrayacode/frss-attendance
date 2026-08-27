@@ -73,9 +73,10 @@ export const updateUser = async (userId: string, payload: object): Promise<User>
     }
 };
 
-export const resetUserPassword = async (userId: string): Promise<void> => {
+export const resetUserPassword = async (userId: string): Promise<{ tempPassword: string }> => {
     try {
-        await api.post(`/users/${userId}/reset-password`);
+        const response = await api.post(`/users/${userId}/reset-password`);
+        return response.data.data;
     } catch (error) {
         console.error(`Failed to reset password for user ${userId}:`, error);
         throw error;
