@@ -7,9 +7,10 @@ import {
     deleteUser,
     approveUser,
     rejectUser,
+    resetPasswordController,
     getAttendanceReportController,
     getAttendancesTodayController,
-    getBlacklistDetectionController
+    getBlacklistDetectionController,
 } from './user.controller';
 import { authMiddleware } from '@/middlewares/auth.middleware';
 
@@ -23,6 +24,7 @@ userRouter.put('/:id', updateUser);
 userRouter.delete('/:id', deleteUser);
 userRouter.patch('/:id/approve', approveUser);
 userRouter.patch('/:id/reject', rejectUser);
+userRouter.post('/:id/reset-password', resetPasswordController);
 userRouter.get('/attendance-report', getAttendanceReportController);
 
 // Tambahkan di sini
