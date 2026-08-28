@@ -33,6 +33,159 @@
   let selectedStatusFilter: 'Online' | 'Offline' | '' = '';
   let selectedApprovalFilter: 'Approved' | 'Pending' | 'Rejected' | '' = '';
 
+      // --- User Modal state ---
+    let showUserModal = false;
+    let editingUserId: string | null = null;
+    let userName = '';
+    let userEmail = '';
+    let userUsername = '';
+    let userPassword = '';
+    let userRoleId = '';
+    let userDepartment = '';
+    let userModalError = '';
+
+    function openAddUserModal() {
+        editingUserId = null;
+        userName = '';
+        userEmail = '';
+        userUsername = '';
+        userPassword = '';
+        userRoleId = '';
+        userDepartment = '';
+        userModalError = '';
+        showUserModal = true;
+    }
+
+    function openEditUserModal(user: any) {
+        editingUserId = user.id;
+        userName = user.name || '';
+        userEmail = user.email || '';
+        userUsername = user.username || '';
+        userPassword = '';
+        userRoleId = user.roleId || user.role?.id || '';
+        userDepartment = user.department || '';
+        userModalError = '';
+        showUserModal = true;
+    }
+
+    async function submitUserModal() {
+        userModalError = '';
+        if (!userEmail || (!editingUserId && !userPassword)) {
+            userModalError = 'Email wajib diisi, dan Password wajib diisi untuk user baru.';
+            return;
+        }
+        try {
+            if (editingUserId !== null) {
+                await updateUser(editingUserId, {
+                    name: userName || undefined,
+                    email: userEmail,
+                    username: userUsername || undefined,
+                    roleId: userRoleId || null,
+                    department: userDepartment || undefined
+                });
+            } else {
+                await createUser({
+                    email: userEmail,
+                    name: userName || undefined,
+                    username: userUsername || undefined,
+                    password: userPassword,
+                    roleId: userRoleId || null,
+                    department: userDepartment || undefined
+                });
+            }
+            await queryClient.invalidateQueries({ queryKey: ['users'] });
+            showUserModal = false;
+        } catch (error) {
+            userModalError = 'Gagal menyimpan user. Cek console untuk detail.';
+        }
+    }
+
+    async function handleDeleteUser(user: any) {
+        if (!confirm(`Yakin ingin menghapus user "${user.name || user.email}"?`)) return;
+        try {
+            await deleteUser(user.id);
+            await queryClient.invalidateQueries({ queryKey: ['users'] });
+        } catch (error) {
+            alert('Gagal menghapus user. Cek console untuk detail.');
+        }
+    }
+
+    async function handleResetPassword(user: any) {
+        if (!confirm(`Reset password untuk "${user.name || user.email}"?`)) return;
+        try {
+            const result = await resetUserPassword(user.id);
+            alert(`Password baru untuk ${user.email}: ${result.tempPassword}\n\nSampaikan password ini ke user secara langsung.`);
+        } catch (error) {
+            alert('Gagal reset password. Cek console untuk detail.');
+        }
+    }
+
+    // --- Role Modal state ---
+    let showRoleModal = false;
+    let editingRoleId: string | number | null = null;
+    let roleName = '';
+    let roleDescription = '';
+    let rolePermissions = '';
+    let roleModalError = '';
+
+    function openAddRoleModal() {
+        editingRoleId = null;
+        roleName = '';
+        roleDescription = '';
+        rolePermissions = '';
+        roleModalError = '';
+        showRoleModal = true;
+    }
+
+    function openEditRoleModal(role: any) {
+        editingRoleId = role.id;
+        roleName = role.name || '';
+        roleDescription = role.description || '';
+        rolePermissions = Array.isArray(role.permissions) ? role.permissions.join(', ') : '';
+        roleModalError = '';
+        showRoleModal = true;
+    }
+
+    async function submitRoleModal() {
+        roleModalError = '';
+        if (!roleName || !roleDescription) {
+            roleModalError = 'Nama dan deskripsi wajib diisi.';
+            return;
+        }
+        const permissionsArray = rolePermissions
+            ? rolePermissions.split(',').map((p) => p.trim()).filter(Boolean)
+            : [];
+        try {
+            if (editingRoleId !== null) {
+                await updateRole(editingRoleId, {
+                    name: roleName,
+                    description: roleDescription,
+                    permissions: permissionsArray
+                });
+            } else {
+                await createRole({
+                    name: roleName,
+                    description: roleDescription,
+                    permissions: permissionsArray
+                });
+            }
+            await queryClient.invalidateQueries({ queryKey: ['roles'] });
+            showRoleModal = false;
+        } catch (error) {
+            roleModalError = 'Gagal menyimpan role. Cek console untuk detail.';
+        }
+    }
+
+    async function handleDeleteRole(role: any) {
+        if (!confirm(`Yakin ingin menghapus role "${role.name}"?`)) return;
+        try {
+            await deleteRole(role.id);
+            await queryClient.invalidateQueries({ queryKey: ['roles'] });
+        } catch (error) {
+            alert('Gagal menghapus role. Cek console untuk detail.');
+        }
+    }
+
   // Query untuk mengambil data pengguna
   const usersQuery = createQuery({
       queryKey: ['users', searchUsers, selectedRoleFilter, selectedStatusFilter, selectedApprovalFilter],
@@ -177,7 +330,7 @@ function formatLastLogin(dateString: Date | null | undefined): string {
       >
           <h3 class="text-base font-medium text-gray-800 dark:text-white/90">User Management</h3>
           <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
-              <button class="btn-primary-sm" aria-label="addUserButton">
+              <button class="btn-primary-sm" aria-label="addUserButton" onclick={openAddUserModal}>
                   <Plus class="h-4 w-4" />
                   Add User
               </button>
@@ -409,7 +562,7 @@ function formatLastLogin(dateString: Date | null | undefined): string {
                                   <td class="px-5 py-4 sm:px-6">
                                       <div class="flex items-center gap-x-2">
                                           {#if user.isApproved}
-                                              <button aria-label="editButton" class="btn-secondary-icon">
+                                              <button aria-label="editButton" class="btn-secondary-icon" onclick={() => openEditUserModal(user)}>
                                                   <PencilLine class="h-4 w-4" />
                                               </button>
                                               <button aria-label="resetPasswordButton" class="btn-secondary-icon" onclick={() => handleResetPassword(user)}>
@@ -504,7 +657,7 @@ function formatLastLogin(dateString: Date | null | undefined): string {
       >
           <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Role Management</h3>
           <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
-              <button class="btn-primary-sm" aria-label="addRoleButton">
+              <button class="btn-primary-sm" aria-label="addRoleButton" onclick={openAddRoleModal}>
                   <Plus class="h-4 w-4" />
                   Add Role
               </button>
@@ -598,10 +751,10 @@ function formatLastLogin(dateString: Date | null | undefined): string {
                                   </td>
                                   <td class="px-5 py-4 sm:px-6">
                                       <div class="flex items-center gap-x-2">
-                                          <button aria-label="editRoleButton" class="btn-secondary-icon">
+                                          <button aria-label="editRoleButton" class="btn-secondary-icon" onclick={() => openEditRoleModal(role)}>
                                               <PencilLine class="h-4 w-4" />
                                           </button>
-                                          <button aria-label="deleteRoleButton" class="btn-secondary-icon">
+                                          <button aria-label="deleteRoleButton" class="btn-secondary-icon" onclick={() => handleDeleteRole(role)}>
                                               <Trash class="h-4 w-4" />
                                           </button>
                                       </div>
@@ -621,3 +774,67 @@ function formatLastLogin(dateString: Date | null | undefined): string {
       </div>
   </div>
 </div>
+{#if showUserModal}
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+          <div class="mb-4 flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">{editingUserId !== null ? 'Edit User' : 'Add User'}</h3>
+              <button aria-label="closeModal" onclick={() => { showUserModal = false; editingUserId = null; }}>
+                  <X class="h-5 w-5 text-gray-400" />
+              </button>
+          </div>
+          <div class="flex flex-col gap-y-3">
+              {#if userModalError}
+                  <p class="text-sm text-red-500">{userModalError}</p>
+              {/if}
+              <input class="form-input" type="email" placeholder="Email *" bind:value={userEmail} />
+              <input class="form-input" type="text" placeholder="Name" bind:value={userName} />
+              <input class="form-input" type="text" placeholder="Username" bind:value={userUsername} />
+              {#if editingUserId === null}
+                  <input class="form-input" type="password" placeholder="Password *" bind:value={userPassword} />
+              {/if}
+              <input class="form-input" type="text" placeholder="Department" bind:value={userDepartment} />
+              <select class="form-input" bind:value={userRoleId}>
+                  <option value="">-- Pilih Role (opsional) --</option>
+                  {#each $rolesQuery.data || [] as role}
+                      <option value={role.id}>{role.name}</option>
+                  {/each}
+              </select>
+              <div class="mt-2 flex justify-end gap-x-2">
+                  <button class="btn-secondary-md" onclick={() => { showUserModal = false; editingUserId = null; }}>Cancel</button>
+                  <button class="btn-primary-md" onclick={submitUserModal}>Save</button>
+              </div>
+          </div>
+      </div>
+  </div>
+{/if}
+
+{#if showRoleModal}
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 dark:bg-gray-900">
+          <div class="mb-4 flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">{editingRoleId !== null ? 'Edit Role' : 'Add Role'}</h3>
+              <button aria-label="closeModal" onclick={() => { showRoleModal = false; editingRoleId = null; }}>
+                  <X class="h-5 w-5 text-gray-400" />
+              </button>
+          </div>
+          <div class="flex flex-col gap-y-3">
+              {#if roleModalError}
+                  <p class="text-sm text-red-500">{roleModalError}</p>
+              {/if}
+              <input class="form-input" type="text" placeholder="Nama Role *" bind:value={roleName} />
+              <input class="form-input" type="text" placeholder="Deskripsi *" bind:value={roleDescription} />
+              <input
+                  class="form-input"
+                  type="text"
+                  placeholder="Permissions (pisahkan koma, misal: read,write)"
+                  bind:value={rolePermissions}
+              />
+              <div class="mt-2 flex justify-end gap-x-2">
+                  <button class="btn-secondary-md" onclick={() => { showRoleModal = false; editingRoleId = null; }}>Cancel</button>
+                  <button class="btn-primary-md" onclick={submitRoleModal}>Save</button>
+              </div>
+          </div>
+      </div>
+  </div>
+{/if}
