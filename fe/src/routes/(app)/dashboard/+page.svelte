@@ -1,7 +1,8 @@
 <script lang="ts">
+    import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import { createQuery } from '@tanstack/svelte-query';
-    import { AlertCircle, Camera, UserCheck, UserX } from '@lucide/svelte';
+    import { AlertCircle, Camera, UserCheck, UserX } from 'lucide-svelte';
     import Breadcrumb from '../../../components/breadcrumb/Breadcrumb.svelte';
     import { renderChart } from 'svelte-chart-apex';
     import { fetchDashboardData } from './api';
@@ -10,12 +11,12 @@
 
     let dashboardData = $state<DashboardResponse | null>(null);
 
-    const dashboardQuery = createQuery({
+    const dashboardQuery = createQuery(() => ({
         queryKey: ['dashboardData'],
         queryFn: async () => {
             return await fetchDashboardData();
         }
-    });
+    }));
 
     const isLoading = $derived($dashboardQuery.isFetching);
 
@@ -61,7 +62,8 @@
 </script>
 
 <div class="flex flex-col gap-y-6">
-    <Breadcrumb pageName="Dashboard" />
+    <Breadcrumb pageTitle="Dashboard" />
+    
     <!-- Dashboard Stats -->
     <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 lg:gap-4">
         {#if isLoading}
@@ -115,15 +117,12 @@
             <div class="col-span-full text-center py-4 text-gray-500">Failed to load dashboard data.</div>
         {/if}
     </div>
+
     <!-- Chart -->
     <div class="grid grid-cols-12 gap-4">
         <!-- Chart Security Incidents -->
-        <div
-            class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-7 dark:border-gray-800 dark:bg-white/[0.03]"
-        >
-            <div
-                class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
-            >
+        <div class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-7 dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800">
                 <h3 class="text-base font-medium text-gray-800 dark:text-white/90">
                     Activity Timeline
                 </h3>
@@ -135,13 +134,10 @@
             </div>
             <div use:renderChart={activityTimelineChartData}></div>
         </div>
+
         <!-- Chart Incidents -->
-        <div
-            class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-5 dark:border-gray-800 dark:bg-white/[0.03]"
-        >
-            <div
-                class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-5 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
-            >
+        <div class="col-span-full rounded-2xl border border-gray-200 bg-white md:col-span-6 lg:col-span-5 dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-5 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800">
                 <h3 class="text-base font-medium text-gray-800 dark:text-white/90">
                     Camera Status
                 </h3>
@@ -149,15 +145,12 @@
             <div use:renderChart={cameraStatusChartData}></div>
         </div>
     </div>
+
     <!-- Event & System -->
     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <!-- Event -->
-        <div
-            class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
-        >
-            <div
-                class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
-            >
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-3 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800">
                 <h3 class="text-base font-medium text-gray-800 dark:text-white/90">Recent Events</h3>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-2">
                     <a href="/alert-notification" class="btn-secondary-outline-md" aria-label="tabButton">
@@ -165,78 +158,57 @@
                     </a>
                 </div>
             </div>
+
             <!-- Table -->
             <div class="max-w-full overflow-x-auto px-6 py-5">
                 <table class="min-w-full">
-                    <!-- Table Header -->
                     <thead class="border-b border-gray-100 dark:border-white/[0.05]">
                         <tr>
-                            <th class="px-5 py-3 sm:px-6">
-                                <div class="flex items-center">
-                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">#</p>
-                                </div>
+                            <th class="px-5 py-3 sm:px-6 text-left">
+                                <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">#</p>
                             </th>
-                            <th class="px-5 py-3 sm:px-6">
-                                <div class="flex items-center">
-                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Name</p>
-                                </div>
+                            <th class="px-5 py-3 sm:px-6 text-left">
+                                <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Name</p>
                             </th>
-                            <th class="px-5 py-3 sm:px-6">
-                                <div class="flex items-center">
-                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Location</p>
-                                </div>
+                            <th class="px-5 py-3 sm:px-6 text-left">
+                                <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Location</p>
                             </th>
-                            <th class="px-5 py-3 sm:px-6">
-                                <div class="flex items-center">
-                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Time</p>
-                                </div>
+                            <th class="px-5 py-3 sm:px-6 text-left">
+                                <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Time</p>
                             </th>
-                            <th class="px-5 py-3 sm:px-6">
-                                <div class="flex items-center">
-                                    <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Status</p>
-                                </div>
+                            <th class="px-5 py-3 sm:px-6 text-left">
+                                <p class="text-theme-xs font-medium text-gray-500 dark:text-gray-400">Status</p>
                             </th>
                         </tr>
                     </thead>
-                    <!-- Table Body -->
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         {#if dashboardData && dashboardData.recentAlerts.length > 0}
                             {#each dashboardData.recentAlerts.slice(0, 5) as event, index}
                                 <tr>
                                     <td class="px-5 py-4 sm:px-6">
-                                        <div class="flex items-center">
-                                            <p class="text-theme-sm text-gray-500 dark:text-gray-400">
-                                                {index + 1}
-                                            </p>
-                                        </div>
+                                        <p class="text-theme-sm text-gray-500 dark:text-gray-400">
+                                            {index + 1}
+                                        </p>
                                     </td>
                                     <td class="px-5 py-4 sm:px-6">
-                                        <div class="flex items-center">
-                                            <p class="text-theme-sm text-gray-500 dark:text-gray-400">
-                                                {event.title}
-                                            </p>
-                                        </div>
+                                        <p class="text-theme-sm text-gray-500 dark:text-gray-400">
+                                            {event.title}
+                                        </p>
                                     </td>
                                     <td class="px-5 py-4 sm:px-6">
-                                        <div class="flex items-center">
-                                            <p class="text-theme-sm text-gray-500 dark:text-gray-400">
-                                                {event.location}
-                                            </p>
-                                        </div>
+                                        <p class="text-theme-sm text-gray-500 dark:text-gray-400">
+                                            {event.location}
+                                        </p>
                                     </td>
                                     <td class="px-5 py-4 sm:px-6">
-                                        <div class="flex items-center">
-                                            <p class="text-theme-sm text-gray-500 dark:text-gray-400">
-                                                {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
-                                            </p>
-                                        </div>
+                                        <p class="text-theme-sm text-gray-500 dark:text-gray-400">
+                                            {formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })}
+                                        </p>
                                     </td>
                                     <td class="px-5 py-4 sm:px-6">
-                                        <div class="flex items-center">
-                                            <p class={`text-theme-sm ${event.isResolved ? 'text-success-500' : 'text-error-500'}`}>
-                                                {event.isResolved ? 'Resolved' : 'Pending'}
-                                            </p>
-                                        </div>
+                                        <p class={`text-theme-sm ${event.isResolved ? 'text-success-500' : 'text-error-500'}`}>
+                                            {event.isResolved ? 'Resolved' : 'Pending'}
+                                        </p>
                                     </td>
                                 </tr>
                             {/each}
@@ -251,13 +223,10 @@
                 </table>
             </div>
         </div>
+
         <!-- System -->
-        <div
-            class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
-        >
-            <div
-                class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-5 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800"
-            >
+        <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+            <div class="flex flex-col gap-y-4 border-b border-gray-100 px-6 py-5 lg:flex-row lg:items-center lg:justify-between dark:border-gray-800">
                 <h3 class="text-base font-medium text-gray-800 dark:text-white/90">System Health</h3>
             </div>
             <div class="px-6 py-5">

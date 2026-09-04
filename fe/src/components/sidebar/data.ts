@@ -1,64 +1,63 @@
-import { Bell, ChartBarIncreasing, ClipboardList, Drumstick, LayoutDashboard, Play, Radio, Settings, User, Video } from "@lucide/svelte";
-import type { MenuItem } from "./types";
+import {
+	LayoutDashboard,
+	Video,
+	Camera,
+	Users,
+	FileBarChart,
+	BellRing,
+	Film,
+	Egg
+} from 'lucide-svelte';
 
-export const singleMenuItems: MenuItem[] = [
-    {
-        label: 'Dashboard',
-        icon: LayoutDashboard,
-        link: '/dashboard'
-    }
-];
+export interface MenuItem {
+	title: string;
+	href: string;
+	icon: any;
+	badge?: string;
+}
 
 export const mainMenuItems: MenuItem[] = [
-    {
-        label: 'Live Monitoring',
-        icon: Radio,
-        link: '/live-monitoring'
-    },
-    {
-        label: 'Alert & Notification',
-        icon: Bell,
-        link: '/alert-notification'
-    },
-    {
-        label: 'Video Playback',
-        icon: Play,
-        link: '/video-playback'
-    },
-    {
-        label: 'Report & Analytics',
-        icon: ChartBarIncreasing,
-        link: '/report-analytics'
-    },
+	{
+		title: 'Dashboard',
+		href: '/dashboard',
+		icon: LayoutDashboard
+	},
+	{
+		title: 'Live Monitoring',
+		href: '/live-monitoring',
+		icon: Video
+	},
+	{
+		title: 'Camera Management',
+		href: '/camera',
+		icon: Camera
+	},
+	{
+		title: 'Video Playback',
+		href: '/video-playback',
+		icon: Film
+	},
+	{
+		title: 'Report Analytics',
+		href: '/report-analytics',
+		icon: FileBarChart
+	},
+	{
+		title: 'Alert Notification',
+		href: '/alert-notification',
+		icon: BellRing
+	}
 ];
 
 export const masterMenuItems: MenuItem[] = [
-    {
-        label: 'User',
-        icon: User,
-        link: '/user'
-    },
-    {
-        label: 'Camera',
-        icon: Video,
-        link: '/camera'
-    },
+	{
+		title: 'User Management',
+		href: '/user',
+		icon: Users
+	}
 ];
 
-export const poultryMenuItems: MenuItem[] = [
-    {
-        label: 'Dashboard Ayam',
-        icon: Drumstick,
-        link: '/chicken-counting'
-    },
-    {
-        label: 'Rekap Counting',
-        icon: ClipboardList,
-        link: '/chicken-counting/rekap'
-    },
-    {
-        label: 'Konfigurasi',
-        icon: Settings,
-        link: '/chicken-counting/config'
-    },
-];
+// Dikosongkan agar menu chicken counting tidak muncul jika tidak digunakan
+export const poultryMenuItems: MenuItem[] = [];
+
+export const singleMenuItems: MenuItem[] = [];

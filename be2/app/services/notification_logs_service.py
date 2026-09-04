@@ -43,4 +43,4 @@ class NotificationLogsService:
             return False
         await db.delete(log)
         await db.commit()
-        return
+        return True

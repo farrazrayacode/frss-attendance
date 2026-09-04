@@ -32,12 +32,12 @@
     });
 
     const camerasQueryKey = $derived(['cameras', searchCamera, selectedLocationFilter, selectedStatusFilter]); 
-    const camerasQuery = createQuery({
-        queryKey: camerasQueryKey,
+    const camerasQuery = createQuery(() => ({
+        queryKey: ['cameras', searchCamera, selectedLocationFilter, selectedStatusFilter],
         queryFn: async () => {
             return await getAllCameras(searchCamera, selectedLocationFilter, selectedStatusFilter);
         }
-    });
+    }));
 
     const totalCameras = $derived($camerasQuery.data?.length || 0); 
     const onlineCameras = $derived($camerasQuery.data?.filter(cam => cam.isOnline).length || 0);

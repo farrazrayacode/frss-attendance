@@ -1,32 +1,30 @@
-import express from 'express';
+import { Router } from 'express';
 import {
-    getAllUsersController,
     getUserProfileController,
-    createUser,
-    updateUser,
-    deleteUser,
-    approveUser,
-    rejectUser,
+    getAllUsersController,
+    approveUserController,
+    rejectUserController,
+    deleteUserController,
     getAttendanceReportController,
-    getAttendancesTodayController,
-    getBlacklistDetectionController
 } from './user.controller';
 import { authMiddleware } from '@/middlewares/auth.middleware';
 
-const userRouter = express.Router();
+const userRouter = Router();
 
-userRouter.get('/', authMiddleware, getAllUsersController);
+// Endpoint laporan presensi
+userRouter.get(
+    '/attendance-report',
+    authMiddleware,
+    getAttendanceReportController,
+);
+
+// Endpoint profile & list user
 userRouter.get('/profile', authMiddleware, getUserProfileController);
+userRouter.get('/', authMiddleware, getAllUsersController);
 
-userRouter.post('/', createUser);
-userRouter.put('/:id', updateUser);
-userRouter.delete('/:id', deleteUser);
-userRouter.patch('/:id/approve', approveUser);
-userRouter.patch('/:id/reject', rejectUser);
-userRouter.get('/attendance-report', getAttendanceReportController);
-
-// Tambahkan di sini
-userRouter.get('/attendances-today', getAttendancesTodayController);
-userRouter.get('/blacklist-detection', getBlacklistDetectionController);
+// Action buttons (Approve, Reject, Delete)
+userRouter.patch('/:id/approve', authMiddleware, approveUserController);
+userRouter.delete('/:id/reject', authMiddleware, rejectUserController);
+userRouter.delete('/:id', authMiddleware, deleteUserController);
 
 export default userRouter;

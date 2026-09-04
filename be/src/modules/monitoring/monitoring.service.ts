@@ -16,20 +16,20 @@ export const getLiveAlertsFromDB = async () => {
     return DB.Alerts.findAll({
         where: { isResolved: false },
         order: [['createdAt', 'DESC']],
-        limit: 10
+        limit: 10,
     });
 };
 
 export const getRecordingListFromDB = async (
     personName: string = '',
     cameraName: string = '',
-    date: Date | null = null
+    date: Date | null = null,
 ): Promise<RecordingAttributes[]> => {
     let whereCondition: any = {};
     let includeOptions: any[] = [];
 
     if (personName && personName.trim() !== '') {
-        whereCondition.personName = { [Op.iLike]: `%${personName.trim()}%` };
+        whereCondition.personName = { [Op.like]: `%${personName.trim()}%` };
     }
 
     const monitoringIncludeOption: any = {
@@ -39,7 +39,9 @@ export const getRecordingListFromDB = async (
     };
 
     if (cameraName && cameraName.trim() !== '') {
-        monitoringIncludeOption.where = { name: { [Op.iLike]: `%${cameraName.trim()}%` } };
+        monitoringIncludeOption.where = {
+            name: { [Op.like]: `%${cameraName.trim()}%` },
+        };
         monitoringIncludeOption.required = true;
     }
     includeOptions.push(monitoringIncludeOption);
@@ -51,7 +53,7 @@ export const getRecordingListFromDB = async (
         endOfDay.setHours(23, 59, 59, 999);
 
         whereCondition.startTime = {
-            [Op.between]: [startOfDay, endOfDay]
+            [Op.between]: [startOfDay, endOfDay],
         };
     }
 
@@ -66,8 +68,12 @@ export const getRecordingListFromDB = async (
 
 export const getCameraStatusForDashboard = async () => {
     const totalCameras = await DB.Monitoring.count();
-    const onlineCameras = await DB.Monitoring.count({ where: { isOnline: true } });
-    const offlineCameras = await DB.Monitoring.count({ where: { isOnline: false } });
+    const onlineCameras = await DB.Monitoring.count({
+        where: { isOnline: true },
+    });
+    const offlineCameras = await DB.Monitoring.count({
+        where: { isOnline: false },
+    });
 
     return { totalCameras, onlineCameras, offlineCameras };
 };

@@ -12,20 +12,25 @@ from firebase_admin import credentials, db
 
 logger = logging.getLogger(__name__)
 
-_DATABASE_URL = os.getenv(
-    "FIREBASE_DATABASE_URL",
-    "https://rfid-de0fd-default-rtdb.asia-southeast1.firebasedatabase.app"
-)
+_DATABASE_URL = os.getenv("FIREBASE_DATABASE_URL")
+if not _DATABASE_URL:
+    try:
+        import json
+        with open("firebase-credentials.json", "r") as f:
+            _pid = json.load(f).get("project_id")
+            _DATABASE_URL = f"https://{_pid}-default-rtdb.asia-southeast1.firebasedatabase.app"
+    except Exception:
+        _DATABASE_URL = "https://rfid-de0fd-default-rtdb.asia-southeast1.firebasedatabase.app"
 
 
 def _load_credentials() -> Optional[credentials.Certificate]:
     """
-    Load Firebase credentials from (in order of priority):
-    1. FIREBASE_SERVICE_ACCOUNT_BASE64 env var — base64-encoded JSON (for HF Spaces / CI)
-    2. FIREBASE_SERVICE_ACCOUNT_PATH env var — path to JSON file
-    3. Default JSON file path (local dev)
+    Load Firebase credentials from:
+    1. FIREBASE_SERVICE_ACCOUNT_BASE64 env var
+    2. FIREBASE_SERVICE_ACCOUNT_PATH env var
+    3. Default JSON file candidates in local directories
     """
-    # 1. Base64-encoded JSON dari env var (Hugging Face Secrets)
+    # 1. Base64
     b64 = os.getenv("FIREBASE_SERVICE_ACCOUNT_BASE64")
     if b64:
         try:
@@ -34,17 +39,31 @@ def _load_credentials() -> Optional[credentials.Certificate]:
         except Exception as e:
             logger.error(f"Failed to decode FIREBASE_SERVICE_ACCOUNT_BASE64: {e}")
 
-    # 2. Path ke file JSON
-    sa_path = os.getenv(
-        "FIREBASE_SERVICE_ACCOUNT_PATH",
-        os.path.join(os.path.dirname(__file__), "..", "..", "rfid-de0fd-firebase-adminsdk-fbsvc-22ca2974df.json")
-    )
-    if os.path.exists(sa_path):
-        return credentials.Certificate(sa_path)
+    # 2. Env variable path
+    env_path = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH") or os.getenv("FIREBASE_CREDENTIALS_PATH")
+    if env_path and os.path.exists(env_path):
+        try:
+            return credentials.Certificate(env_path)
+        except Exception as e:
+            logger.error(f"Failed to load credentials from {env_path}: {e}")
 
-    logger.warning("Firebase service account not found — Firebase features disabled.")
+    # 3. Default local file candidates
+    candidates = [
+        "firebase-credentials.json",
+        "serviceAccountKey.json",
+        os.path.join(os.path.dirname(__file__), "../../../firebase-credentials.json"),
+        os.path.join(os.path.dirname(__file__), "../../../serviceAccountKey.json"),
+    ]
+
+    for path in candidates:
+        if os.path.exists(path):
+            try:
+                logger.info(f"Firebase credentials loaded from: {path}")
+                return credentials.Certificate(path)
+            except Exception as e:
+                logger.error(f"Failed to load credentials from candidate {path}: {e}")
+
     return None
-
 
 class FirebaseService:
     """Singleton Firebase connection manager"""

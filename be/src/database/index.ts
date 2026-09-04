@@ -47,46 +47,62 @@ DB.Recordings.belongsTo(DB.Monitoring, {
         await sequelize.authenticate();
         logger.info('SQLite database connected ✅');
 
-        await sequelize.sync({ alter: true });
+        // Gunakan sync biasa tanpa alter: true untuk SQLite
+        await sequelize.sync();
         logger.info('Tables synced ✅');
 
         await seedDefaultData();
-    } catch (error) {
-        logger.error('Database init failed ❌', error);
+    } catch (error: any) {
+        // Log detail validasi Sequelize jika ada
+        if (error.errors && Array.isArray(error.errors)) {
+            error.errors.forEach((err: any) => {
+                logger.error(
+                    `Validation detail: ${err.message} on field "${err.path}" with value "${err.value}"`,
+                );
+            });
+        } else {
+            logger.error('Database init failed ❌', error);
+        }
     }
 })();
 
 async function seedDefaultData() {
-    const bcrypt = await import('bcrypt');
+    try {
+        const bcrypt = await import('bcrypt');
 
-    // Seed role admin
-    const [adminRole] = await DB.Roles.findOrCreate({
-        where: { name: 'admin' },
-        defaults: {
-            name: 'admin',
-            description: 'Administrator with full access',
-            permissions: ['all'],
-        } as any,
-    });
+        // 1. Ambil atau Buat Role Admin
+        let adminRole = await DB.Roles.findOne({ where: { name: 'admin' } });
+        if (!adminRole) {
+            adminRole = await DB.Roles.create({
+                name: 'admin',
+                description: 'Administrator with full access',
+                permissions: ['all'],
+            } as any);
+            logger.info('Default admin role created ✅');
+        }
 
-    // Seed user admin default
-    const existing = await DB.Users.findOne({
-        where: { email: 'admin@admin.com' },
-    });
-    if (!existing) {
-        const hashed = await bcrypt.hash('Admin123!', 10);
-        await DB.Users.create({
-            name: 'Admin',
-            email: 'admin@admin.com',
-            username: 'admin',
-            password: hashed,
-            role_id: adminRole.get('id'),
-            isApproved: true,
-            department: 'IT',
-            isOnline: false,
-        } as any);
-        logger.info(
-            'Default admin user created ✅ (admin@admin.com / Admin123!)',
-        );
+        // 2. Ambil atau Buat Default User Admin
+        const existing = await DB.Users.findOne({
+            where: { email: 'admin@admin.com' },
+        });
+
+        if (!existing) {
+            const hashed = await bcrypt.hash('Admin123!', 10);
+            await DB.Users.create({
+                name: 'Admin',
+                email: 'admin@admin.com',
+                username: 'admin',
+                password: hashed,
+                roleId: Number(adminRole.id),
+                isApproved: true,
+                department: 'IT',
+                isOnline: false,
+            } as any);
+            logger.info(
+                'Default admin user created ✅ (admin@admin.com / Admin123!)',
+            );
+        }
+    } catch (err: any) {
+        logger.error('Error during seeding default data:', err);
     }
 }

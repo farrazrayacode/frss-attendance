@@ -1,5 +1,5 @@
 import { DataTypes, Sequelize, Model, Optional } from 'sequelize';
-import type { MonitoringFeed } from '$../../interfaces/monitoring.interfaces';
+import type { MonitoringFeed } from '../../interfaces/monitoring.interfaces';
 
 export interface RecordingAttributes {
     id: number;
@@ -13,12 +13,13 @@ export interface RecordingAttributes {
     camera?: MonitoringFeed;
 }
 
-
 export type RecordingCreationAttributes = Optional<RecordingAttributes, 'id'>;
 
 export default (sequelize: Sequelize) => {
-    class Recording extends Model<RecordingAttributes, RecordingCreationAttributes>
-        implements RecordingAttributes {
+    class Recording
+        extends Model<RecordingAttributes, RecordingCreationAttributes>
+        implements RecordingAttributes
+    {
         public id!: number;
         public camera_id!: number;
         public eventType!: string;
@@ -75,8 +76,8 @@ export default (sequelize: Sequelize) => {
             tableName: 'recordings',
             timestamps: true,
             createdAt: 'created_at',
-            updatedAt: false, 
-        }
+            updatedAt: false,
+        },
     );
 
     return Recording;
