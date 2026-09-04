@@ -15,4 +15,13 @@ package-lock.json
 
 # --- Tambahan untuk Service Account Key Firebase ---
 *.json.json
-*serviceAccountKey*.json
+*serviceAccountKey*.json"*.tar.gz" 
+
+*.json
+!package.json
+!tsconfig*.json
+!jsconfig*.json
+firebase-credentials.json
+serviceAccountKey.json
+.env
+.env.*
