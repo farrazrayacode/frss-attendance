@@ -19,18 +19,19 @@
   let department = $state('');
   let isSubmitting = $state(false);
 
-  // 1. Query untuk Pending Approvals Table
-  const pendingUsersQuery = createQuery(() => ({
+    // 1. Query untuk Pending Approvals Table
+  const pendingUsersQuery = createQuery({
     queryKey: ['users', 'pending'],
     queryFn: async () => {
       const res = await api.get('/users?approval=Pending');
       return res.data.data || [];
     }
-  }));
+  });
 
   // 2. Query untuk Active Users Table
-  const activeUsersQuery = createQuery(() => ({
-    queryKey: ['users', 'active', search, roleFilter, statusFilter],
+  const activeUsersQueryKey = $derived(['users', 'active', search, roleFilter, statusFilter]);
+  const activeUsersQuery = createQuery({
+    queryKey: activeUsersQueryKey,
     queryFn: async () => {
       const params = new URLSearchParams();
       params.append('approval', 'Approved');
@@ -41,7 +42,7 @@
       const res = await api.get(`/users?${params.toString()}`);
       return res.data.data || [];
     }
-  }));
+  });
 
   async function handleApprove(userId: string) {
     try {
@@ -100,7 +101,7 @@
 <div class="space-y-8">
   <!-- Header & Action -->
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <Breadcrumb pageTitle="User Management" />
+    <Breadcrumb pageName="User Management" />
     <button
       onclick={() => (isAddModalOpen = true)}
       class="flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 shadow-sm transition"

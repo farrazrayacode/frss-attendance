@@ -11,12 +11,12 @@
 
     let dashboardData = $state<DashboardResponse | null>(null);
 
-    const dashboardQuery = createQuery(() => ({
+    const dashboardQuery = createQuery({
         queryKey: ['dashboardData'],
         queryFn: async () => {
             return await fetchDashboardData();
         }
-    }));
+    });
 
     const isLoading = $derived($dashboardQuery.isFetching);
 
@@ -62,7 +62,7 @@
 </script>
 
 <div class="flex flex-col gap-y-6">
-    <Breadcrumb pageTitle="Dashboard" />
+    <Breadcrumb pageName="Dashboard" />
     
     <!-- Dashboard Stats -->
     <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-4 lg:gap-4">

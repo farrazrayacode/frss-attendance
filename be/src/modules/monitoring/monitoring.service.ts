@@ -77,3 +77,50 @@ export const getCameraStatusForDashboard = async () => {
 
     return { totalCameras, onlineCameras, offlineCameras };
 };
+
+export const getFilteredCamerasFromDB = async (
+    search: string = '',
+    locationFilter: string = '',
+    statusFilter: string = '',
+) => {
+    const where: any = {};
+    if (search) {
+        where.name = { [Op.like]: `%${search}%` };
+    }
+    if (locationFilter) {
+        where.location = locationFilter;
+    }
+    if (statusFilter === 'Online') {
+        where.isOnline = true;
+    } else if (statusFilter === 'Offline') {
+        where.isOnline = false;
+    }
+    return DB.Monitoring.findAll({ where });
+};
+
+export const createCameraInDB = async (data: {
+    name: string;
+    streamUrl: string;
+    location?: string;
+    ipAddress?: string;
+}) => {
+    return DB.Monitoring.create({
+        ...data,
+        isOnline: false,
+        lastUpdated: new Date(),
+    } as MonitoringAttributes);
+};
+
+export const updateCameraInDB = async (
+    id: number,
+    data: Partial<MonitoringAttributes>,
+) => {
+    const camera = await DB.Monitoring.findByPk(id);
+    if (!camera) return null;
+    await camera.update({ ...data, lastUpdated: new Date() });
+    return camera;
+};
+
+export const deleteCameraFromDB = async (id: number) => {
+    return DB.Monitoring.destroy({ where: { id } });
+};

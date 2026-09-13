@@ -27,8 +27,9 @@
   let activeRecording = $state<RecordingItem | null>(null);
   let videoPlayer: HTMLVideoElement | null = $state(null);
 
-  const recordingsQuery = createQuery(() => ({
-    queryKey: ['recordings', personName, cameraName, date],
+  const recordingsQueryKey = $derived(['recordings', personName, cameraName, date]);
+  const recordingsQuery = createQuery({
+    queryKey: recordingsQueryKey,
     queryFn: async () => {
       const params = new URLSearchParams();
       if (personName) params.append('personName', personName);
@@ -38,7 +39,7 @@
       const res = await api.get(`/monitoring/recordings?${params.toString()}`);
       return (res.data.data || []) as RecordingItem[];
     }
-  }));
+  });
 
   function playRecording(item: RecordingItem) {
     activeRecording = item;
@@ -58,7 +59,7 @@
 
 <div class="space-y-6">
   <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <Breadcrumb pageTitle="Video Playback" />
+    <Breadcrumb pageName="Video Playback" />
   </div>
 
   <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">

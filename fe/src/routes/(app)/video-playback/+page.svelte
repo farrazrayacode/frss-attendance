@@ -28,8 +28,9 @@
     let videoPlayer: HTMLVideoElement | null = $state(null);
     let isPlaying = $state(false);
 
-    const recordingsQuery = createQuery(() => ({
-        queryKey: ['recordings', searchPerson, searchCamera, selectedDate],
+    const recordingsQueryKey = $derived(['recordings', searchPerson, searchCamera, selectedDate]);
+    const recordingsQuery = createQuery({
+        queryKey: recordingsQueryKey,
         queryFn: async () => {
             const params = new URLSearchParams();
             if (searchPerson) params.append('personName', searchPerson);
@@ -39,7 +40,7 @@
             const res = await api.get(`/monitoring/recordings?${params.toString()}`);
             return (res.data.data || []) as RecordingItem[];
         }
-    }));
+    });
 
     function playRecording(item: RecordingItem) {
         activeRecording = item;
@@ -71,7 +72,7 @@
 
 <div class="space-y-6">
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <Breadcrumb pageTitle="Video Playback & Incident Archive" />
+        <Breadcrumb pageName="Video Playback & Incident Archive" />
     </div>
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
